@@ -12,4 +12,6 @@ The game is `python-air-traffic-control`, a python implementation of the above s
 6. Run `pip install -r requirements.txt` to download all of the necessary dependencies.
 
 ## How to play the game on your own
-Make sure your virtual environment described in 'How to Install' is activated, then run `python python-air-traffic-control/main.py`.
+1. Make sure your virtual environment described in 'How to Install' is activated.
+2. `cd` into the `python-air-traffic-control` directory.
+3. Run `python main.py`.
