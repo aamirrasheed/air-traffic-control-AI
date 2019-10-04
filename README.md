@@ -1,7 +1,10 @@
 # air-traffic-control-AI
 An AI that plays an air traffic simulator, routing randomly generated planes to their destinations while avoiding collisions with each other and environmental obstacles.
 
-The game is `python-air-traffic-control`, a python implementation of the above scenario. You can find its repo [here.](https://github.com/scotty3785/python-air-traffic-control)
+The game is `python-air-traffic-control`, a python implementation of the above scenario. You can find its original repo [here.](https://github.com/scotty3785/python-air-traffic-control)
+
+![](media/atc.gif)
+
 
 ## How to Install
 1. Clone this repository to your desired location.
