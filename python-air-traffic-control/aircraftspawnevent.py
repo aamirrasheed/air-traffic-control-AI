@@ -52,7 +52,7 @@ class AircraftSpawnEvent:
                 def t1(d):
                     l = d.getLocation()
                     return l[1] > screen_h/2
-                def t2(p1,p2):                  # What does this do????
+                def t2(p1,p2):
                     return 1
             elif (side == 2):
                 def t1(d):
@@ -74,19 +74,12 @@ class AircraftSpawnEvent:
                     return 1
             d = AircraftSpawnEvent.valid_destinations(destinations,t1,t2)
             randdest = random.choice(d)
-            randspawnevent.append(AircraftSpawnEvent(randspawn, randdest)) # I am interested in location: randspawn
-        """
-        print("Write spawn points")
-        for i in randspawnevent:
-            print(i)
-            print()
-        """
+            randspawnevent.append(AircraftSpawnEvent(randspawn, randdest))
         return (randtime, randspawnevent)
 
     @staticmethod
     def __generateRandomSpawnPoint(screen_w, screen_h):
-        side = random.randint(1, 4)     # I guess screen is split into 4 sides (left, right, top, right)
-        #side = 4                        # I modified (Have to delete this and remove earlier line) --------------------
+        side = random.randint(1, 4)     # Screen is split into 4 edges (left, right, top, right)
         previous = 7                    # Magic Number ?????????????????????????????????
         if side == 1 and side != previous:
             loc = (random.randint(0, screen_w), 0)          # Spawn in the top region

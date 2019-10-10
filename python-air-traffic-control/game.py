@@ -238,8 +238,6 @@ class Game:
         if(len(self.aircraftspawntimes) != 0):
             if self.ms_elapsed >= self.aircraftspawntimes[0]:  # If game time has exceeded normal aircraft spawn time
                 sp = self.aircraftspawns[0]
-                #print("Trying to check closeness")
-                #print()
                 while (self.__isSpawnPointTooCloseToAircraft(sp)):  # While we get close spawn points we strip those points
                     #print("Trying while again")
                     if (len(self.aircraftspawns) > 1):  # Quick fix; I can increase number of spawn points for improving this
@@ -401,15 +399,9 @@ class Game:
     def __isSpawnPointTooCloseToAircraft(self,spawn):
         ret = False
         for i in self.aircraft:
-            print("-------------------------")
-            print(spawn.getSpawnPoint())
-            print(i.getLocation())
             dist = Utility.locDistSq(spawn.getSpawnPoint(), i.getLocation())
-            print(dist)
-            print()
-            if (dist < 10000):                              # This can be manipulated for spawn point check
+            if (dist < 10000):                              # This distance can be manipulated for spawn point check
                 ret = True;
-                #print("Did find an aircraft close to spawn point")
         return ret
 
 
