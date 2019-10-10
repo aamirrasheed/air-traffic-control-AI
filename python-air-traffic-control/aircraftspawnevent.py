@@ -1,4 +1,10 @@
 #	File: aircraftspawnevent.py
+#   Description: This module is used to generate spawn points
+#   Author: Ashar Alam (ashar1@stanford.edu)
+#   ChangeLog: I have basically added a function to check if the new spawn point is too close to an aircraft
+#               If this is the case I remove that spawn point from the list
+#               I should add more spawn points so that we never run out of them
+#               I reduced the number of aircrafts to 10 and introduced number of spawn points to 50 (may change later)
 
 import conf
 import random
@@ -37,7 +43,7 @@ class AircraftSpawnEvent:
     def generateGameSpawnEvents(screen_w, screen_h, destinations):
         randtime = [1]
         randspawnevent = []
-        for x in range(1, conf.get()['game']['n_aircraft']): # Number of aircrafts = 30 default
+        for x in range(1, conf.get()['game']['n_spawnpoints']): # Previously ['n_aircraft']
             randtime.append(random.randint(1, conf.get()['game']['gametime']))
         randtime.sort()
         for x in randtime:
@@ -69,16 +75,18 @@ class AircraftSpawnEvent:
             d = AircraftSpawnEvent.valid_destinations(destinations,t1,t2)
             randdest = random.choice(d)
             randspawnevent.append(AircraftSpawnEvent(randspawn, randdest)) # I am interested in location: randspawn
+        """
         print("Write spawn points")
         for i in randspawnevent:
             print(i)
             print()
+        """
         return (randtime, randspawnevent)
 
     @staticmethod
     def __generateRandomSpawnPoint(screen_w, screen_h):
-        #side = random.randint(1, 4)     # I guess screen is split into 4 sides (left, right, top, right)
-        side = 4                        # I modified (Have to delete this and remove earlier line)
+        side = random.randint(1, 4)     # I guess screen is split into 4 sides (left, right, top, right)
+        #side = 4                        # I modified (Have to delete this and remove earlier line) --------------------
         previous = 7                    # Magic Number ?????????????????????????????????
         if side == 1 and side != previous:
             loc = (random.randint(0, screen_w), 0)          # Spawn in the top region
@@ -89,5 +97,5 @@ class AircraftSpawnEvent:
         elif side == 4 and side != previous:
             loc = (0, random.randint(0, screen_h))          # Spawn in the left region
 
-        #previous = side               # Have to remove comment
+        previous = side               # Have to remove comment
         return (loc), side

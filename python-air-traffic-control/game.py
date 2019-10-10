@@ -1,5 +1,9 @@
 #   File: game.py
 #   Description: An instance of one game of ATC
+#   Author: Ashar Alam (ashar1@stanford.edu)
+#   ChangeLog: I have basically added a function to check if the new spawn point is too close to an aircraft
+#               If this is the case I remove that spawn point from the list
+#               I should add more spawn points so that we never run out of them
 
 import pygame
 import random
@@ -234,11 +238,11 @@ class Game:
         if(len(self.aircraftspawntimes) != 0):
             if self.ms_elapsed >= self.aircraftspawntimes[0]:  # If game time has exceeded normal aircraft spawn time
                 sp = self.aircraftspawns[0]
-                print("Trying to check closeness")
-                print()
+                #print("Trying to check closeness")
+                #print()
                 while (self.__isSpawnPointTooCloseToAircraft(sp)):  # While we get close spawn points we strip those points
-                    print("Trying while again")
-                    if (len(self.aircraftspawns) > 1):  # Quick fix; I can increase number of aircrafts for improving this
+                    #print("Trying while again")
+                    if (len(self.aircraftspawns) > 1):  # Quick fix; I can increase number of spawn points for improving this
                         self.aircraftspawns.remove(sp)
                         sp = self.aircraftspawns[0]
                     # Do we still have to take care of times????
@@ -403,9 +407,9 @@ class Game:
             dist = Utility.locDistSq(spawn.getSpawnPoint(), i.getLocation())
             print(dist)
             print()
-            if (dist < 10000):
+            if (dist < 10000):                              # This can be manipulated for spawn point check
                 ret = True;
-                print("Did find an aircraft close to spawn point")
+                #print("Did find an aircraft close to spawn point")
         return ret
 
 
