@@ -1,5 +1,9 @@
 #   File: game.py
 #   Description: An instance of one game of ATC
+#   Author: Ashar Alam (ashar1@stanford.edu)
+#   ChangeLog: I have basically added a function to check if the new spawn point is too close to an aircraft
+#               If this is the case I remove that spawn point from the list
+#               I should add more spawn points so that we never run out of them
 
 import pygame
 import random
@@ -33,7 +37,7 @@ class Game:
 
     COLOR_SCORETIME = (20, 193, 236)    #Score/time counter colour
 
-    
+
 
     def __init__(self, screen, demomode):
         #Screen vars
@@ -50,7 +54,7 @@ class Game:
         #Imagey type stuff
         self.font = pygame.font.Font(None, 30)
         self.screen = screen
-               
+
         #Aircraft/destination state vars
         self.demomode = demomode
         self.gameEndCode = 0
@@ -73,25 +77,25 @@ class Game:
         self.__generateDestinations()
         self.__generateObstacles()
         self.__generateAircraftSpawnEvents()
-        
+
         # Preload sounds.
         self.sound_warning = pygame.mixer.Sound("data/sounds/warning.ogg")
         self.sound_collision = pygame.mixer.Sound("data/sounds/boom.wav")
         self.channel_warning = pygame.mixer.Channel(0)
         self.channel_collision = pygame.mixer.Channel(1)
-        
+
         self.app = gui.App()
         self.cnt_main = gui.Container(align=-1,valign=-1)
         self.delaytimer = 0
 
         if not self.demomode:
             self.btn_game_end = gui.Button(value="End Game", width=Game.FS_W-3, height=60)
-            self.btn_game_end.connect(gui.CLICK, self.__callback_User_End)        
+            self.btn_game_end.connect(gui.CLICK, self.__callback_User_End)
             self.cnt_main.add(self.btn_game_end, Game.FSPANE_LEFT, Game.FSPANE_TOP - 65)
         else:
             pygame.mouse.set_visible(False)
             self.delaytimer = pygame.time.get_ticks()
-        
+
         self.cnt_fspane = FlightStripPane(left=Game.FSPANE_LEFT, top=Game.FSPANE_TOP, width=Game.FS_W, align=-1, valign=-1)
         self.cnt_main.add(self.cnt_fspane, Game.FSPANE_LEFT, Game.FSPANE_TOP)
 
@@ -124,10 +128,10 @@ class Game:
                 elif (randAC):
                     # Ramp the current aircraft's speed up and down
                     if (randAC.getSpeed() < 110 or randAC.getSpeed() > 990):
-                        ds *= -1 
+                        ds *= -1
                     randAC.setSpeed(randAC.getSpeed() + ds)
 
-            
+
             #Draw background
             pygame.draw.rect(self.screen, (0, 0, 0), self.screen.get_rect())
 
@@ -147,14 +151,14 @@ class Game:
             #Move/redraw/collide aircraft
             self.__update()
             self.__handleAircraftObstacleCollisions()
-            
+
             self.screen.set_clip(None)
             #Draw black rect over RHS of screen, to occult bits of plane/obstacle that may be there
             #pygame.draw.rect(self.screen, (0, 0, 0), pygame.Rect((Game.FSPANE_LEFT, 0), (Game.SCREEN_W - 1 - Game.FSPANE_LEFT, Game.FSPANE_TOP - 4)))
             #pygame.draw.rect(self.screen, (0, 0, 0), pygame.Rect((Game.FSPANE_LEFT, Game.FSPANE_TOP), (Game.SCREEN_W - 1 - Game.FSPANE_LEFT, Game.SCREEN_H - Game.FSPANE_TOP)))
             pygame.draw.line(self.screen, (255, 255, 255), (Game.AERIALPANE_W + 1, 0), (Game.AERIALPANE_W + 1, Game.SCREEN_H), 3)
             pygame.draw.line(self.screen, (255, 255, 255), (Game.FSPANE_LEFT, Game.FSPANE_TOP - 2), (Game.SCREEN_W, Game.FSPANE_TOP - 2), 3)
-            
+
             if self.demomode == False:
                 #if self.score is negative cap it at 0.
                 if self.score <= 0:
@@ -173,7 +177,7 @@ class Game:
 
                     mvmouse_demo = pygame.font.Font(None, 50).render("Move mouse!", True, (255, 100, 100))
                     self.screen.blit(mvmouse_demo, (Game.FSPANE_LEFT + 15, 50))
-                    
+
             #Recalc time and check for game end
             self.ms_elapsed = self.ms_elapsed + timepassed
             if(self.ms_elapsed >= conf.get()['game']['gametime'] and not self.demomode):
@@ -186,7 +190,7 @@ class Game:
         self.__displayPostGameDialog()
 
         return (self.gameEndCode, self.score)
-        
+
     #Request a new selected aircraft
     def requestSelected(self, ac):
         self.ac_selected = ac
@@ -194,10 +198,10 @@ class Game:
         for a in self.aircraft:
             if(a != self.ac_selected):
                 a.setSelected(False)
-        # Then reselect the active aircraft 
+        # Then reselect the active aircraft
         if(self.ac_selected != None):
             self.ac_selected.setSelected(True)
-            
+
     def __update(self):
 
         #1: Update the positions of all existing aircraft
@@ -229,28 +233,34 @@ class Game:
             self.aircraft.remove(a)
             self.cnt_fspane.remove(a.getFS())
             self.cnt_fspane.repaint()
-        
+
         #4: Spawn new aircraft due for spawning (or if in demo, regenerate list if none left)
         if(len(self.aircraftspawntimes) != 0):
-            if self.ms_elapsed >= self.aircraftspawntimes[0]:
+            if self.ms_elapsed >= self.aircraftspawntimes[0]:  # If game time has exceeded normal aircraft spawn time
                 sp = self.aircraftspawns[0]
+                while (self.__isSpawnPointTooCloseToAircraft(sp)):  # While we get close spawn points we strip those points
+                    #print("Trying while again")
+                    if (len(self.aircraftspawns) > 1):  # Quick fix; I can increase number of spawn points for improving this
+                        self.aircraftspawns.remove(sp)
+                        sp = self.aircraftspawns[0]
+                    # Do we still have to take care of times????
                 if(len(self.aircraft) < math.floor(Game.FSPANE_H / 60)):
                     ac = Aircraft(self, sp.getSpawnPoint(), conf.get()['aircraft']['speed_default'], sp.getDestination(), "BA" + str(random.randint(1, 100)))
                     self.aircraft.append(ac)
                     self.cnt_fspane.addNewFlightStrip(ac)
-                self.aircraftspawns.remove(sp)
+                self.aircraftspawns.remove(sp)      # Removes the previous spawn point
                 self.aircraftspawntimes.remove(self.aircraftspawntimes[0])
         elif self.demomode:
             self.ms_eleapsed = 0
             self.__generateAircraftSpawnEvents()
             print("reset")
-    
+
     def __handleUserInteraction(self):
 
         for event in pygame.event.get():
 
             self.app.event(event)
-            
+
             if self.demomode:
                 if (pygame.time.get_ticks() - self.delaytimer) >= 1000:
                     if event.type == pygame.MOUSEMOTION or event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.KEYDOWN:
@@ -265,7 +275,7 @@ class Game:
                     else:
                         dbl_click = False
                     self.last_click_time = pygame.time.get_ticks()
-    
+
                     clickedac = self.__getACClickedOn(event.pos)
                     if(clickedac != None):
                         #Clicked an aircraft
@@ -279,7 +289,7 @@ class Game:
                                 if(w.clickedOn(event.pos) == True):
                                     if (dbl_click):
                                         # Use del list[index] instead?
-                                        self.ac_selected.waypoints.remove(w)     
+                                        self.ac_selected.waypoints.remove(w)
                                         wclick = True
                                         break
                                     else:
@@ -305,26 +315,26 @@ class Game:
                                 #TW Fix this as it is sh*t
                                 if (way_added == False and 0 < event.pos[0] < Game.AERIALPANE_W ):
                                     self.requestSelected(None)
-    
+
                 elif(event.type == pygame.MOUSEBUTTONUP and event.button == 1):
-    
+
                     if(self.way_clicked != None):
                         self.way_clicked = None
-    
+
                 elif(event.type == pygame.MOUSEMOTION):
     			# MOUSEMOTION event has members pos, rel and buttons
-    
+
                     if(self.way_clicked != None):
                         if(event.pos[0] >= Game.AERIALPANE_W - 3):
                             self.way_clicked.setLocation((Game.AERIALPANE_W - 3, event.pos[1]))
                         else:
                             self.way_clicked.setLocation(event.pos)
-    
-                elif(event.type == pygame.KEYDOWN):    
+
+                elif(event.type == pygame.KEYDOWN):
 
                     if(event.key == pygame.K_ESCAPE):
                         self.gameEndCode = conf.get()['codes']['user_end']
-    
+
     def __callback_User_End(self):
         self.gameEndCode = conf.get()['codes']['user_end']
 
@@ -372,12 +382,30 @@ class Game:
                 mindistsq = distsq
         return foundac
 
+    """
+    So, basically the problem is they checked if the
+    Spawn Events are Too Close but did not check if those events are close to the aircrafts
+    """
     def __generateAircraftSpawnEvents(self):
         (self.aircraftspawntimes, self.aircraftspawns) = AircraftSpawnEvent.generateGameSpawnEvents(Game.AERIALPANE_W, Game.AERIALPANE_H, self.destinations)
-        while self.__areSpawnEventsTooClose(self.aircraftspawntimes, self.aircraftspawns) == True:
+        while self.__areSpawnEventsTooClose(self.aircraftspawntimes, self.aircraftspawns) == True: # If spawn events are too close try to fix it
+            print("they were too close")
+            print()
             (self.aircraftspawntimes, self.aircraftspawns) = AircraftSpawnEvent.generateGameSpawnEvents(Game.AERIALPANE_W, Game.AERIALPANE_H, self.destinations)
 
-    def __areSpawnEventsTooClose(self, times, spawns):
+    """
+    Added a function to not spawn close to an aircraft
+    """
+    def __isSpawnPointTooCloseToAircraft(self,spawn):
+        ret = False
+        for i in self.aircraft:
+            dist = Utility.locDistSq(spawn.getSpawnPoint(), i.getLocation())
+            if (dist < 10000):                              # This distance can be manipulated for spawn point check
+                ret = True;
+        return ret
+
+
+    def __areSpawnEventsTooClose(self, times, spawns):  # This should fix the problem
         ret = False
         if len(times) == len(spawns):
             x = 0
@@ -390,13 +418,15 @@ class Game:
                         dt = math.fabs(times[x] - times[y])
                         if ((dist < 25 ** 2) and (dt < 6000)):
                             ret = True;
+                            print("did observe this to be true")
+                            print()
                             brk = True;
                     y += 1
                 x += 1
         else:
             ret = True
         return ret
-                        
+
 
     def __generateDestinations(self):
         self.destinations = Destination.generateGameDestinations(Game.AERIALPANE_W, Game.AERIALPANE_H)
@@ -409,13 +439,13 @@ class Game:
         if(self.gameEndCode != conf.get()['codes']['user_end'] and self.gameEndCode != conf.get()['codes']['kill']):
             l = gui.Label("Game Over!")
             b = gui.Button("OK")
-           
+
             # Not nice... but one way of passing by reference!
             # A list is a mutable object, while an int isn't -- that's why I'm using a list
             # Wait for Python 3 to allow assigning non-global variable in outer scope (keyword: nonlocal)
             bob = [False]
             def okcb(b):
-                b[0] = True 
+                b[0] = True
 
             b.connect(gui.CLICK,okcb,bob)
             c = gui.Container()
@@ -444,4 +474,3 @@ class Game:
                 self.app.repaint()
                 self.app.update(self.screen)
                 pygame.display.flip()
-
