@@ -114,7 +114,7 @@ class Aircraft:
             pygame.draw.circle(surface, (255, 255, 0), self.location, conf.get()['aircraft']['collision_radius'], 1)
 
         #Draw lines and waypoints if selected
-        if(self.selected == True):
+        if(True == True):
             point_list = []
             point_list.append(self.location)
             for x in range(0, len(self.waypoints)-1):
