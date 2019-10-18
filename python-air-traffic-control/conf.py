@@ -15,6 +15,6 @@ def load():
 def get():
     global loaded
     return loaded
-    
+
 load()
         

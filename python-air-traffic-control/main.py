@@ -8,6 +8,7 @@ import os
 import info_logger
 import menu_base
 import conf
+import argparse
 
 STATE_MENU = 1
 STATE_GAME = 2
@@ -89,6 +90,53 @@ class Main:
                 state = STATE_GAME
             game = None
 
+
+def getArgs(parser):
+    '''
+        Parses the command line arguments passed into the program call to change 
+        the game configurations.
+    '''
+    parser.add_argument("-g", "--gametime", type=int, help="Gametime in seconds")
+    parser.add_argument("-p", "--planes", type=int, help="Number of planes to spawn")
+    parser.add_argument("-s", "--spawnpoints", type=int, help="Number of spawnpoints for planes")
+    parser.add_argument("-d", "--destinations", type=int, help="Number of airport destinations")
+    parser.add_argument("-o", "--obstacles", type=int, help="Number of obstacles")
+    parser.add_argument("-f", "--fullscreen", action="store_true", help="Number of obstacles")
+    parser.add_argument("-fr", "--framerate", type=int, help="Framerate of the game")
+    return parser.parse_args()
+
+
+def override_config(args):
+    '''
+        Overrides the desired configurations from the command line. This only works because 
+        main is the first to initialize the configuration dictionary, allowing us to change
+        the global variable here and having the changes propagate to the rest of the files.
+        Hacky but it works.
+    '''
+    if (args.gametime is not None):
+        conf.get()['game']['gametime'] = args.gametime * 1000 # Since gametime is measured in milliseconds
+    if (args.planes is not None):
+        conf.get()['game']['n_aircraft'] = args.planes
+    if (args.spawnpoints is not None):
+        conf.get()['game']['n_spawnpoints'] = args.spawnpoints
+    if (args.destinations is not None):
+        conf.get()['game']['n_destinations'] = args.destinations
+    if (args.obstacles is not None):
+        conf.get()['game']['n_obstacles'] = args.obstacles
+    if (args.fullscreen):
+        conf.get()['game']['fullscreen'] = True
+    if (args.framerate is not None):
+        conf.get()['game']['n_framerate'] = args.framerate
+
+
 if __name__ == '__main__':
+
+    # Initialize the command line parser
+    parser = argparse.ArgumentParser("Configuration overrides for testing purposes.")
+    # Get the arguments 
+    args = getArgs(parser)
+    # Make the necessary changes to the game configuration
+    override_config(args)
+
     game_main = Main()
     game_main.run()
