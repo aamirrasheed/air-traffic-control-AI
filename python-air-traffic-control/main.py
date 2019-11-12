@@ -67,9 +67,7 @@ class Main:
                 game = Game(self.screen, False)
                 (gameEndCode, score) = game.start()
                 self.infologger.add_value(self.id,'score',score)
-                if (gameEndCode == conf.get()['codes']['time_up']):
-                    state = STATE_HIGH
-                elif (gameEndCode == conf.get()['codes']['kill']):
+                if (gameEndCode == conf.get()['codes']['kill']):
                     state = STATE_KILL
                 elif (gameEndCode == conf.get()['codes']['user_end']):
                     state = STATE_MENU
@@ -101,7 +99,7 @@ def getArgs(parser):
     parser.add_argument("-s", "--spawnpoints", type=int, help="Number of spawnpoints for planes")
     parser.add_argument("-d", "--destinations", type=int, help="Number of airport destinations")
     parser.add_argument("-o", "--obstacles", type=int, help="Number of obstacles")
-    parser.add_argument("-f", "--fullscreen", action="store_true", help="Number of obstacles")
+    parser.add_argument("-f", "--fullscreen", action="store_true", help="Toggle fullscreen mode")
     parser.add_argument("-fr", "--framerate", type=int, help="Framerate of the game")
     return parser.parse_args()
 
