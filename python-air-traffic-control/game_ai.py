@@ -192,7 +192,8 @@ class AIGame:
         #self.__displayPostGameDialog()
 
         aircraft = self.aircraft
-        rewards = getRewards()
+        print(aircraft)
+        rewards = self.getRewards()
 
         return (aircraft, rewards, self.gameEndCode, self.score)
 
@@ -481,14 +482,17 @@ class AIGame:
                 pygame.display.flip()
 
 
-    def getAircraft(self):
-        return self.aircraft
-
-
     def getCollidingAircraft(self):
         '''
-            Returns all of the index pairs in the aircraft list of two planes
-            that are within a radius of potential collision.
+            Finds all pairs of planes in the game that are within the radius of
+            potential collision from each other. The function returns a list of 
+            tuples, where each tuple contains the indices of the potentially
+            colliding planes in the aircraft list. 
+            
+            For example, given a row element tuple (0,4) and the list of aircraft,
+            aircraft, the planes of interest can be obtained through:
+                plane1 = aircraft[0] 
+                plane2 = aircraft[4] 
         '''
         potentialCollisions = set()
         for i,plane1 in enumerate(self.aircraft):
@@ -503,13 +507,17 @@ class AIGame:
                     #print("{} {}".format(plane1.getIdent(), plane2.getIdent()))
                     potentialCollisions.add((i,j))
 
-        return potentialCollisions
+        return list(potentialCollisions)
 
 
     def getRewards(self):
         '''
-            Returns all of the index pairs in the aircraft list of two planes
-            that are within a radius of potential collision.
+            Returns a list of rewards for each plane in a given timestep. 
+
+            NOTE: The order of the rewards matters as they should correspond
+            to the ordering of planes in the self.aircraft variable, such that
+            iterating through zip(rewards, aircraft) would return the reward for
+            that particular aircraft.
         '''
         rewards = []
         for plane in self.aircraft:

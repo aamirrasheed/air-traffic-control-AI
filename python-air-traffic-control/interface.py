@@ -9,6 +9,7 @@ import info_logger
 import menu_base
 import conf
 import argparse
+from enum import Enum
 
 STATE_MENU = 1
 STATE_GAME = 2
@@ -16,6 +17,15 @@ STATE_DEMO = 3
 STATE_HIGH = 4
 STATE_KILL = 5
 STATE_AGES = 6
+
+
+# Create the action enumeration
+class Action(Enum):
+    N = 0   # Nothing
+    HL = 1  # Hard Left
+    ML = 2  # Mid Left
+    MR = 3  # Mid Right
+    HR = 4  # Hard Right
 
 class Main:
 
@@ -64,12 +74,18 @@ class Main:
                 elif (menuEndCode == conf.get()['codes']['kill']):
                     state = STATE_KILL
             elif (state == STATE_GAME):
+
+                ##########################################################
+                ##########################################################
+                #                   MAIN GAME SEQUENCE                   #
+                ##########################################################
+                ##########################################################
+
                 game = AIGame(self.screen, False)
                 gameEndCode = 0
                 game.start()
                 while (gameEndCode == 0): 
                     aircraft, rewards, gameEndCode, score = game.step()
-
                     game.getCollidingAircraft()
                 self.infologger.add_value(self.id,'score',score)
                 if (gameEndCode == conf.get()['codes']['kill']):
@@ -78,15 +94,60 @@ class Main:
                     state = STATE_MENU
                 elif (gameEndCode == conf.get()['codes']['ac_collide']):
                     state = STATE_HIGH
+                ##########################################################
+                ##########################################################
+                #                 END MAIN GAME SEQUENCE                 #
+                ##########################################################
+                ##########################################################
             elif (state == STATE_KILL):
                 exit = 1
             game = None
 
-    def getState(plane1, plane2):
+    def getState(self, plane1, plane2):
+        '''
+            Calculates the state for plane1, given that plane2, is within the 
+            potential collision radius of plane1. 
+
+            Params:
+                plane1                          Aircraft object; The plane of interest (ownship)
+                plane2                          Aircraft object; The intruder plane
+
+            Returns:
+                (distance, angle, heading)      Tuple that describes the state for plane1
+
+            The returned state should contain:
+                - The distance between the two planes, based on the norm of each plane's 
+                location field within the plane objects
+                - The angle of the plane2's location relative to the heading of plane1
+                - The heading of plane1
+
+            NOTE: In order to get the state of plane2, you have to call the function
+            again with the order of the planes reversed.
+        '''
         return None
 
-    def queueAction(planeId, actionId):
-        return None
+    def queueAction(self, plane, action):
+        '''
+            Modifies the plane object to take the desired action set out by the 
+            agent.
+
+            Params:
+                plane                           Aircraft object; Plane to take the action
+                action                          Action Class; The action to take 
+            
+            Returns:
+                None                            Modifies the plane object directly.
+        '''
+        if action == Action.HL:
+            print("Taking hard left")
+        elif action == Action.ML:
+            print("Taking mid left")
+        elif action == Action.HR:
+            print("Taking hard right")
+        elif action == Action.MR:
+            print("Taking mid right")
+        else:
+            print("Doing nothing")
 
 
 
