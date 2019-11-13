@@ -44,7 +44,7 @@ class Main:
         self.id = int(self.infologger.get_id())
 
     def run(self):
-        state = STATE_MENU
+        state = STATE_GAME
         exit = 0
         score = 0
 
