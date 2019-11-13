@@ -2,7 +2,7 @@
 #   File: main.py
 
 from pygame import *
-from game import *
+from game_ai import *
 from highs import *
 import os
 import info_logger
@@ -64,9 +64,13 @@ class Main:
                 elif (menuEndCode == conf.get()['codes']['kill']):
                     state = STATE_KILL
             elif (state == STATE_GAME):
-                game = Game(self.screen, False)
-                (gameEndCode, score) = game.start()
-                print(game.getAircraft())
+                game = AIGame(self.screen, False)
+                gameEndCode = 0
+                game.start()
+                while (gameEndCode == 0): 
+                    aircraft, rewards, gameEndCode, score = game.step()
+
+                    game.getCollidingAircraft()
                 self.infologger.add_value(self.id,'score',score)
                 if (gameEndCode == conf.get()['codes']['kill']):
                     state = STATE_KILL
@@ -74,20 +78,16 @@ class Main:
                     state = STATE_MENU
                 elif (gameEndCode == conf.get()['codes']['ac_collide']):
                     state = STATE_HIGH
-            elif (state == STATE_DEMO):
-               game = Game(self.screen, True)
-               (gameEndCode, score) = game.start()
-               state = STATE_MENU
-            elif (state == STATE_HIGH):
-                highEndCode = self.high.start(score)
-                state = STATE_MENU
-                score = 0
             elif (state == STATE_KILL):
                 exit = 1
-            elif (state == STATE_AGES):
-                self.infologger.add_value(self.id,'agegroup',self.ages.main_loop())
-                state = STATE_GAME
             game = None
+
+    def getState(plane1, plane2):
+        return None
+
+    def queueAction(planeId, actionId):
+        return None
+
 
 
 def getArgs(parser):

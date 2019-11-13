@@ -43,7 +43,7 @@ class AircraftSpawnEvent:
     def generateGameSpawnEvents(screen_w, screen_h, destinations):
         randtime = [1]
         randspawnevent = []
-        for x in range(1, conf.get()['game']['n_spawnpoints']): # Previously ['n_aircraft']
+        for x in range(1, conf.get()['game']['n_aircraft']): # Previously ['n_aircraft']
             randtime.append(random.randint(1, conf.get()['game']['gametime']))
         randtime.sort()
         for x in randtime:

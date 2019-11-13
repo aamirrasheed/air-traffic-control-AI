@@ -23,6 +23,7 @@ class Utility:
     #p3; if such a point exists, the distance to that point is also returned
     @staticmethod
     def getPointLineIntersect(p1, p2, p3):
+        return (None, 0)
         if(p1 != p2):
 			# Simple geometry (best understood with a diagram):
 			# - all points P3 on perpendicular passing through P1 satisfy: (P1P3).(P1P2) = 0

@@ -5,6 +5,7 @@ import pygame
 import os
 import string
 import conf
+import numpy as np
 from waypoint import *
 from utility import *
 from game import *
@@ -64,7 +65,7 @@ class Aircraft:
 
     #Return current location
     def getLocation(self):
-        return self.location
+        return np.array(self.location)
 
     #Return current heading
     def getHeading(self):

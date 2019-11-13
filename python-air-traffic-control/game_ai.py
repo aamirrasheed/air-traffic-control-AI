@@ -10,6 +10,7 @@ import random
 import math
 import pygame
 import conf
+import numpy as np
 from destination import *
 from aircraft import *
 from obstacle import *
@@ -18,7 +19,7 @@ from utility import *
 from pgu import gui
 from flightstrippane import *
 
-class Game:
+class AIGame:
 
     SCREEN_W = 0                #Width of the screen
     SCREEN_H = 0                #Height of the screen
@@ -37,19 +38,19 @@ class Game:
 
     COLOR_SCORETIME = (20, 193, 236)    #Score/time counter colour
 
-
+    POTENTIAL_COLLISION_THRESHOLD = 200
 
     def __init__(self, screen, demomode):
         #Screen vars
-        Game.SCREEN_W = screen.get_size()[0]
-        Game.SCREEN_H = screen.get_size()[1]
-        Game.AERIALPANE_W = Game.SCREEN_H
-        Game.AERIALPANE_H = Game.SCREEN_H
-        Game.FSPANE_LEFT = Game.AERIALPANE_W + 3
-        Game.FSPANE_H = Game.SCREEN_H - Game.FSPANE_TOP
-        Game.FS_W = Game.SCREEN_W - Game.FSPANE_LEFT
-        Game.FS_H = 60
-        Game.RADAR_RADIUS = (Game.AERIALPANE_H - 50) / 2
+        AIGame.SCREEN_W = screen.get_size()[0]
+        AIGame.SCREEN_H = screen.get_size()[1]
+        AIGame.AERIALPANE_W = AIGame.SCREEN_H
+        AIGame.AERIALPANE_H = AIGame.SCREEN_H
+        AIGame.FSPANE_LEFT = AIGame.AERIALPANE_W + 3
+        AIGame.FSPANE_H = AIGame.SCREEN_H - AIGame.FSPANE_TOP
+        AIGame.FS_W = AIGame.SCREEN_W - AIGame.FSPANE_LEFT
+        AIGame.FS_H = 60
+        AIGame.RADAR_RADIUS = (AIGame.AERIALPANE_H - 50) / 2
 
         #Imagey type stuff
         self.font = pygame.font.Font(None, 30)
@@ -89,21 +90,22 @@ class Game:
         self.delaytimer = 0
 
         if not self.demomode:
-            self.btn_game_end = gui.Button(value="End Game", width=Game.FS_W-3, height=60)
+            self.btn_game_end = gui.Button(value="End Game", width=AIGame.FS_W-3, height=60)
             self.btn_game_end.connect(gui.CLICK, self.__callback_User_End)
-            self.cnt_main.add(self.btn_game_end, Game.FSPANE_LEFT, Game.FSPANE_TOP - 65)
+            self.cnt_main.add(self.btn_game_end, AIGame.FSPANE_LEFT, AIGame.FSPANE_TOP - 65)
         else:
             pygame.mouse.set_visible(False)
             self.delaytimer = pygame.time.get_ticks()
 
-        self.cnt_fspane = FlightStripPane(left=Game.FSPANE_LEFT, top=Game.FSPANE_TOP, width=Game.FS_W, align=-1, valign=-1)
-        self.cnt_main.add(self.cnt_fspane, Game.FSPANE_LEFT, Game.FSPANE_TOP)
+        self.cnt_fspane = FlightStripPane(left=AIGame.FSPANE_LEFT, top=AIGame.FSPANE_TOP, width=AIGame.FS_W, align=-1, valign=-1)
+        self.cnt_main.add(self.cnt_fspane, AIGame.FSPANE_LEFT, AIGame.FSPANE_TOP)
 
         self.app.init(self.cnt_main, self.screen)
 
+        self.clock = None
+
     def start(self):
-        clock = pygame.time.Clock()
-        #nextDemoEventTime = random.randint(10000,20000)
+        self.clock = pygame.time.Clock()
         nextDemoEventTime = 6000 # first demo event time is 6 seconds after start of demo
         randAC = None
         # Delta speed -- shouldn't be hardcoded...
@@ -112,10 +114,11 @@ class Game:
         #Blank whole screen once.
         pygame.draw.rect(self.screen, (0, 0, 0), self.screen.get_rect())
 
-        #The main game loop
-        while self.gameEndCode == 0:
-            timepassed = clock.tick(conf.get()['game']['framerate'])
-            self.screen.set_clip(pygame.Rect(0,0,Game.FSPANE_LEFT,Game.SCREEN_H))
+    
+    def step(self):
+        if self.gameEndCode == 0:
+            timepassed = self.clock.tick(conf.get()['game']['framerate'])
+            self.screen.set_clip(pygame.Rect(0,0,AIGame.FSPANE_LEFT,AIGame.SCREEN_H))
             #Handle any UI stuff
             self.__handleUserInteraction()
             if (self.demomode and self.aircraft):
@@ -140,9 +143,9 @@ class Game:
                 x.draw(self.screen)
 
             #Draw radar circles
-            pygame.draw.circle(self.screen, Game.RADAR_CIRC_COLOR, (int(Game.AERIALPANE_W / 2), int(Game.AERIALPANE_H / 2)), int(Game.RADAR_RADIUS * 1/3), 1)
-            pygame.draw.circle(self.screen, Game.RADAR_CIRC_COLOR, (int(Game.AERIALPANE_W / 2), int(Game.AERIALPANE_H / 2)), int(Game.RADAR_RADIUS * 2/3), 1)
-            pygame.draw.circle(self.screen, Game.RADAR_CIRC_COLOR, (int(Game.AERIALPANE_W / 2), int(Game.AERIALPANE_H / 2)), int(Game.RADAR_RADIUS), 1)
+            pygame.draw.circle(self.screen, AIGame.RADAR_CIRC_COLOR, (int(AIGame.AERIALPANE_W / 2), int(AIGame.AERIALPANE_H / 2)), int(AIGame.RADAR_RADIUS * 1/3), 1)
+            pygame.draw.circle(self.screen, AIGame.RADAR_CIRC_COLOR, (int(AIGame.AERIALPANE_W / 2), int(AIGame.AERIALPANE_H / 2)), int(AIGame.RADAR_RADIUS * 2/3), 1)
+            pygame.draw.circle(self.screen, AIGame.RADAR_CIRC_COLOR, (int(AIGame.AERIALPANE_W / 2), int(AIGame.AERIALPANE_H / 2)), int(AIGame.RADAR_RADIUS), 1)
 
             #Draw destinations
             for x in self.destinations:
@@ -154,29 +157,29 @@ class Game:
 
             self.screen.set_clip(None)
             #Draw black rect over RHS of screen, to occult bits of plane/obstacle that may be there
-            #pygame.draw.rect(self.screen, (0, 0, 0), pygame.Rect((Game.FSPANE_LEFT, 0), (Game.SCREEN_W - 1 - Game.FSPANE_LEFT, Game.FSPANE_TOP - 4)))
-            #pygame.draw.rect(self.screen, (0, 0, 0), pygame.Rect((Game.FSPANE_LEFT, Game.FSPANE_TOP), (Game.SCREEN_W - 1 - Game.FSPANE_LEFT, Game.SCREEN_H - Game.FSPANE_TOP)))
-            pygame.draw.line(self.screen, (255, 255, 255), (Game.AERIALPANE_W + 1, 0), (Game.AERIALPANE_W + 1, Game.SCREEN_H), 3)
-            pygame.draw.line(self.screen, (255, 255, 255), (Game.FSPANE_LEFT, Game.FSPANE_TOP - 2), (Game.SCREEN_W, Game.FSPANE_TOP - 2), 3)
+            #pygame.draw.rect(self.screen, (0, 0, 0), pygame.Rect((AIGame.FSPANE_LEFT, 0), (AIGame.SCREEN_W - 1 - AIGame.FSPANE_LEFT, AIGame.FSPANE_TOP - 4)))
+            #pygame.draw.rect(self.screen, (0, 0, 0), pygame.Rect((AIGame.FSPANE_LEFT, AIGame.FSPANE_TOP), (AIGame.SCREEN_W - 1 - AIGame.FSPANE_LEFT, AIGame.SCREEN_H - AIGame.FSPANE_TOP)))
+            pygame.draw.line(self.screen, (255, 255, 255), (AIGame.AERIALPANE_W + 1, 0), (AIGame.AERIALPANE_W + 1, AIGame.SCREEN_H), 3)
+            pygame.draw.line(self.screen, (255, 255, 255), (AIGame.FSPANE_LEFT, AIGame.FSPANE_TOP - 2), (AIGame.SCREEN_W, AIGame.FSPANE_TOP - 2), 3)
 
             if self.demomode == False:
                 #if self.score is negative cap it at 0.
                 if self.score <= 0:
                     self.score = 0
                 #Draw score/time indicators
-                sf_score = self.font.render("Score: " + str(self.score), True, Game.COLOR_SCORETIME)
-                sf_time = self.font.render("Time: " + str( math.floor((conf.get()['game']['gametime'] - self.ms_elapsed) / 1000) ), True, Game.COLOR_SCORETIME)
-                self.screen.fill((0,0,0),sf_score.get_rect().move(Game.FSPANE_LEFT + 30, 10))
-                self.screen.fill((0,0,0),sf_time.get_rect().move(Game.FSPANE_LEFT + 30, 40))
-                self.screen.blit(sf_score, (Game.FSPANE_LEFT + 30, 10))
-                self.screen.blit(sf_time, (Game.FSPANE_LEFT + 30, 40))
+                sf_score = self.font.render("Score: " + str(self.score), True, AIGame.COLOR_SCORETIME)
+                sf_time = self.font.render("Time: " + str( math.floor((conf.get()['game']['gametime'] - self.ms_elapsed) / 1000) ), True, AIGame.COLOR_SCORETIME)
+                self.screen.fill((0,0,0),sf_score.get_rect().move(AIGame.FSPANE_LEFT + 30, 10))
+                self.screen.fill((0,0,0),sf_time.get_rect().move(AIGame.FSPANE_LEFT + 30, 40))
+                self.screen.blit(sf_score, (AIGame.FSPANE_LEFT + 30, 10))
+                self.screen.blit(sf_time, (AIGame.FSPANE_LEFT + 30, 40))
             else:
                 #if (self.ms_elapsed / 1000) % 2 == 0:
                     sf_demo = pygame.font.Font(None, 50).render("DEMO MODE!", True, (255, 100, 100))
-                    self.screen.blit(sf_demo, (Game.FSPANE_LEFT + 15, 10))
+                    self.screen.blit(sf_demo, (AIGame.FSPANE_LEFT + 15, 10))
 
                     mvmouse_demo = pygame.font.Font(None, 50).render("Move mouse!", True, (255, 100, 100))
-                    self.screen.blit(mvmouse_demo, (Game.FSPANE_LEFT + 15, 50))
+                    self.screen.blit(mvmouse_demo, (AIGame.FSPANE_LEFT + 15, 50))
 
             #Recalc time and check for game end
             self.ms_elapsed = self.ms_elapsed + timepassed
@@ -185,11 +188,13 @@ class Game:
             #Flip the framebuffers
             self.app.update(self.screen)
             pygame.display.flip()
-
         #Game over, display game over message
-        self.__displayPostGameDialog()
+        #self.__displayPostGameDialog()
 
-        return (self.gameEndCode, self.score)
+        aircraft = self.aircraft
+        rewards = getRewards()
+
+        return (aircraft, rewards, self.gameEndCode, self.score)
 
     #Request a new selected aircraft
     def requestSelected(self, ac):
@@ -244,7 +249,7 @@ class Game:
                         self.aircraftspawns.remove(sp)
                         sp = self.aircraftspawns[0]
                     # Do we still have to take care of times????
-                if(len(self.aircraft) < math.floor(Game.FSPANE_H / 60)):
+                if(len(self.aircraft) < math.floor(AIGame.FSPANE_H / 60)):
                     ac = Aircraft(self, sp.getSpawnPoint(), conf.get()['aircraft']['speed_default'], sp.getDestination(), "BA" + str(random.randint(1, 100)))
                     self.aircraft.append(ac)
                     self.cnt_fspane.addNewFlightStrip(ac)
@@ -313,7 +318,7 @@ class Game:
                                         way_added = True
                                         break
                                 #TW Fix this as it is sh*t
-                                if (way_added == False and 0 < event.pos[0] < Game.AERIALPANE_W ):
+                                if (way_added == False and 0 < event.pos[0] < AIGame.AERIALPANE_W ):
                                     self.requestSelected(None)
 
                 elif(event.type == pygame.MOUSEBUTTONUP and event.button == 1):
@@ -325,8 +330,8 @@ class Game:
     			# MOUSEMOTION event has members pos, rel and buttons
 
                     if(self.way_clicked != None):
-                        if(event.pos[0] >= Game.AERIALPANE_W - 3):
-                            self.way_clicked.setLocation((Game.AERIALPANE_W - 3, event.pos[1]))
+                        if(event.pos[0] >= AIGame.AERIALPANE_W - 3):
+                            self.way_clicked.setLocation((AIGame.AERIALPANE_W - 3, event.pos[1]))
                         else:
                             self.way_clicked.setLocation(event.pos)
 
@@ -387,11 +392,11 @@ class Game:
     Spawn Events are Too Close but did not check if those events are close to the aircrafts
     """
     def __generateAircraftSpawnEvents(self):
-        (self.aircraftspawntimes, self.aircraftspawns) = AircraftSpawnEvent.generateGameSpawnEvents(Game.AERIALPANE_W, Game.AERIALPANE_H, self.destinations)
+        (self.aircraftspawntimes, self.aircraftspawns) = AircraftSpawnEvent.generateGameSpawnEvents(AIGame.AERIALPANE_W, AIGame.AERIALPANE_H, self.destinations)
         while self.__areSpawnEventsTooClose(self.aircraftspawntimes, self.aircraftspawns) == True: # If spawn events are too close try to fix it
             print("they were too close")
             print()
-            (self.aircraftspawntimes, self.aircraftspawns) = AircraftSpawnEvent.generateGameSpawnEvents(Game.AERIALPANE_W, Game.AERIALPANE_H, self.destinations)
+            (self.aircraftspawntimes, self.aircraftspawns) = AircraftSpawnEvent.generateGameSpawnEvents(AIGame.AERIALPANE_W, AIGame.AERIALPANE_H, self.destinations)
 
     """
     Added a function to not spawn close to an aircraft
@@ -429,10 +434,10 @@ class Game:
 
 
     def __generateDestinations(self):
-        self.destinations = Destination.generateGameDestinations(Game.AERIALPANE_W, Game.AERIALPANE_H)
+        self.destinations = Destination.generateGameDestinations(AIGame.AERIALPANE_W, AIGame.AERIALPANE_H)
 
     def __generateObstacles(self):
-        self.obstacles = Obstacle.generateGameObstacles(Game.AERIALPANE_W, Game.AERIALPANE_H, self.destinations)
+        self.obstacles = Obstacle.generateGameObstacles(AIGame.AERIALPANE_W, AIGame.AERIALPANE_H, self.destinations)
 
     def __displayPostGameDialog(self):
         #Do post-loop actions (game over dialogs)
@@ -475,5 +480,42 @@ class Game:
                 self.app.update(self.screen)
                 pygame.display.flip()
 
+
     def getAircraft(self):
         return self.aircraft
+
+
+    def getCollidingAircraft(self):
+        '''
+            Returns all of the index pairs in the aircraft list of two planes
+            that are within a radius of potential collision.
+        '''
+        potentialCollisions = set()
+        for i,plane1 in enumerate(self.aircraft):
+            for j,plane2 in enumerate(self.aircraft):
+                if (i == j):
+                    continue
+                loc1 = plane1.getLocation()
+                loc2 = plane2.getLocation()
+                distance = np.linalg.norm(loc1 - loc2)
+
+                if (distance < AIGame.POTENTIAL_COLLISION_THRESHOLD and (j,i) not in potentialCollisions):
+                    #print("{} {}".format(plane1.getIdent(), plane2.getIdent()))
+                    potentialCollisions.add((i,j))
+
+        return potentialCollisions
+
+
+    def getRewards(self):
+        '''
+            Returns all of the index pairs in the aircraft list of two planes
+            that are within a radius of potential collision.
+        '''
+        rewards = []
+        for plane in self.aircraft:
+            # Calculate reward for each plane 
+            rewards.append(0)
+
+        return rewards
+
+
