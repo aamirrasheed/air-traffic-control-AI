@@ -85,8 +85,7 @@ class Main:
                 gameEndCode = 0
                 game.start()
                 while (gameEndCode == 0): 
-                    aircraft, rewards, gameEndCode, score = game.step()
-                    game.getCollidingAircraft()
+                    aircraft, rewards, collidingAircraft, gameEndCode, score = game.step()
                 self.infologger.add_value(self.id,'score',score)
                 if (gameEndCode == conf.get()['codes']['kill']):
                     state = STATE_KILL

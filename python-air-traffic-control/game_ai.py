@@ -192,10 +192,10 @@ class AIGame:
         #self.__displayPostGameDialog()
 
         aircraft = self.aircraft
-        print(aircraft)
         rewards = self.getRewards()
+        collidingAircraft = self.getCollidingAircraft()
 
-        return (aircraft, rewards, self.gameEndCode, self.score)
+        return (aircraft, rewards, collidingAircraft, self.gameEndCode, self.score)
 
     #Request a new selected aircraft
     def requestSelected(self, ac):
