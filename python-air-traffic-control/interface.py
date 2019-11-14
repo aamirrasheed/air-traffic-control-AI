@@ -9,6 +9,8 @@ import info_logger
 import menu_base
 import conf
 import argparse
+import numpy as np
+import random as random
 from enum import Enum
 
 STATE_MENU = 1
@@ -17,6 +19,64 @@ STATE_DEMO = 3
 STATE_HIGH = 4
 STATE_KILL = 5
 STATE_AGES = 6
+
+# Creating the sarsa class
+class Sarsa:
+    d = 50
+    rho = 36
+    theta = 36
+    na = 5
+    ns = d * rho * theta
+    explore = 0.1
+    alpha = 0.5
+    lamda = 0.2
+
+    def __init__(self, State):
+        # Values to store
+        Q = np.zeros((Sarsa.ns, Sarsa.na))
+        self.reward = 0
+        self.oldaction = 0
+        self.nextAction = 0
+        self.oldState = State
+        self.nextState = State
+        self.oldIndex = 0
+        self.nextIndex = 0
+        self.distance, self.angle, self.heading = State
+
+    def update(self, State):
+        self.nextState = State
+        self.distance, self.angle, self.heading = State
+        self.nextIndex = self.angle * (theta * d) + self.heading * d + self.distance # error: out of bounds
+        self.nextAction = self.chooseAction()
+        self.rewardFunction(self.oldState[0])
+        self.updateQ(self)
+        self.oldState = self.nextState
+        self.oldAction = self.nextAction
+        self.oldIndex = self.nextIndex
+        return nextAction
+
+
+    def chooseAction(self):
+        # Setting a random threshold
+        rand = random.random()
+        if rand < explore:
+            action = random.randint(0, na-1)
+        else:
+            action = np.argmax(Q[self.nextIndex])
+        return action
+
+    def rewardFunction(self, distance):
+        # ------- Need to implement +100 using the airport distance
+        self.reward = -(2500-(distance**2))/5
+
+    def updateQ(self):
+        Q_val = Q[self.oldIndex][self.oldAction]
+        Q[self.oldIndex][self.oldAction] += alpha*(self.reward + lamda*Q[self.nextIndex, self.nextAction] - Q_val)
+
+
+
+
+
 
 
 # Create the action enumeration
@@ -36,12 +96,12 @@ class Main:
         display.init()
         pygame.mixer.init()
         font.init()
-        
+
         if(conf.get()['game']['fullscreen'] == True):
             self.screen = display.set_mode((1024, 768), pygame.FULLSCREEN)
         else:
             self.screen = display.set_mode((1024, 768))
-            
+
         display.set_caption('ATC Version 2')
 
         self.menu = menu_base.menu_base(self.screen,150,25)
@@ -84,8 +144,13 @@ class Main:
                 game = AIGame(self.screen, False)
                 gameEndCode = 0
                 game.start()
-                while (gameEndCode == 0): 
+                while (gameEndCode == 0):
                     aircraft, rewards, collidingAircraft, gameEndCode, score = game.step()
+                    if (len(collidingAircraft) != 0):
+                        #print(aircraft[collidingAircraft[0][0]].getLocation())
+                        plane1 = aircraft[collidingAircraft[0][0]]
+                        plane2 = aircraft[collidingAircraft[0][1]]
+                        print(self.getState(plane1, plane2))
                 self.infologger.add_value(self.id,'score',score)
                 if (gameEndCode == conf.get()['codes']['kill']):
                     state = STATE_KILL
@@ -104,8 +169,8 @@ class Main:
 
     def getState(self, plane1, plane2):
         '''
-            Calculates the state for plane1, given that plane2, is within the 
-            potential collision radius of plane1. 
+            Calculates the state for plane1, given that plane2, is within the
+            potential collision radius of plane1.
 
             Params:
                 plane1                          Aircraft object; The plane of interest (ownship)
@@ -115,7 +180,7 @@ class Main:
                 (distance, angle, heading)      Tuple that describes the state for plane1
 
             The returned state should contain:
-                - The distance between the two planes, based on the norm of each plane's 
+                - The distance between the two planes, based on the norm of each plane's
                 location field within the plane objects
                 - The angle of the plane2's location relative to the heading of plane1
                 - The heading of plane1
@@ -123,17 +188,22 @@ class Main:
             NOTE: In order to get the state of plane2, you have to call the function
             again with the order of the planes reversed.
         '''
-        return None
+        loc1 = plane1.getLocation()
+        loc2 = plane2.getLocation()
+        heading = plane1.getHeading()   # The heading is clockwise
+        distance = np.linalg.norm(loc1 - loc2)
+        angle = (np.arctan2(loc2[1] - loc1[1], loc2[0] - loc1[0]))*180/np.pi
+        return (distance, angle, heading)
 
     def queueAction(self, plane, action):
         '''
-            Modifies the plane object to take the desired action set out by the 
+            Modifies the plane object to take the desired action set out by the
             agent.
 
             Params:
                 plane                           Aircraft object; Plane to take the action
-                action                          Action Class; The action to take 
-            
+                action                          Action Class; The action to take
+
             Returns:
                 None                            Modifies the plane object directly.
         '''
@@ -152,7 +222,7 @@ class Main:
 
 def getArgs(parser):
     '''
-        Parses the command line arguments passed into the program call to change 
+        Parses the command line arguments passed into the program call to change
         the game configurations.
     '''
     parser.add_argument("-g", "--gametime", type=int, help="Gametime in seconds")
@@ -167,7 +237,7 @@ def getArgs(parser):
 
 def override_config(args):
     '''
-        Overrides the desired configurations from the command line. This only works because 
+        Overrides the desired configurations from the command line. This only works because
         main is the first to initialize the configuration dictionary, allowing us to change
         the global variable here and having the changes propagate to the rest of the files.
         Hacky but it works.
@@ -192,7 +262,7 @@ if __name__ == '__main__':
 
     # Initialize the command line parser
     parser = argparse.ArgumentParser("Configuration overrides for testing purposes.")
-    # Get the arguments 
+    # Get the arguments
     args = getArgs(parser)
     # Make the necessary changes to the game configuration
     override_config(args)
