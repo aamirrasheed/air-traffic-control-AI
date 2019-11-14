@@ -4,6 +4,7 @@
 from pygame import *
 from game_ai import *
 from highs import *
+from waypoint import *
 import os
 import info_logger
 import menu_base
@@ -26,6 +27,9 @@ class Action(Enum):
     ML = 2  # Mid Left
     MR = 3  # Mid Right
     HR = 4  # Hard Right
+
+# Define the distance a plane should be re-routed to when given an action
+REROUTE_DISTANCE = 50
 
 class Main:
 
@@ -86,6 +90,7 @@ class Main:
                 game.start()
                 while (gameEndCode == 0): 
                     aircraft, rewards, collidingAircraft, gameEndCode, score = game.step()
+
                 self.infologger.add_value(self.id,'score',score)
                 if (gameEndCode == conf.get()['codes']['kill']):
                     state = STATE_KILL
@@ -137,16 +142,38 @@ class Main:
             Returns:
                 None                            Modifies the plane object directly.
         '''
+        def wrapToPi(a):
+            if isinstance(a, list):
+                return [(x + np.pi) % (2*np.pi) - np.pi for x in a]
+            return (a + np.pi) % (2*np.pi) - np.pi
+
+        location = plane.getLocation()
+        # Initialize the Waypoint with the plane's current location as a placeholder
+        newWaypoint = Waypoint(location)
+        # Heading is returned as degrees to convert to radians
+        # Heading is also with respect to the top of the screen so that is accounted for
+        heading = wrapToPi(plane.getHeading()*np.pi/180.0 - np.pi/2)
+
+        # Calculate the new heading that the plane must go to inact the desired action
         if action == Action.HL:
-            print("Taking hard left")
+            newHeading = wrapToPi(heading-np.pi/2)
         elif action == Action.ML:
-            print("Taking mid left")
+            newHeading = wrapToPi(heading-np.pi/4)
         elif action == Action.HR:
-            print("Taking hard right")
+            newHeading = wrapToPi(heading+np.pi/2)
         elif action == Action.MR:
-            print("Taking mid right")
+            newHeading = wrapToPi(heading+np.pi/4)
         else:
             print("Doing nothing")
+            newWaypoint = None
+
+        if (newWaypoint):
+            # Using the new heading and the reroute distance, calculate a point along that heading
+            reroutePoint = REROUTE_DISTANCE*np.array([np.cos(newHeading), np.sin(newHeading)])
+            # Re-set the waypoint object
+            newWaypoint.setLocation(location + reroutePoint)
+            # Add the waypoint to the plane trajectory
+            plane.addWaypoint(newWaypoint)
 
 
 
