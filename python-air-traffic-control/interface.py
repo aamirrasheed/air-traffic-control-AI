@@ -33,9 +33,9 @@ class Sarsa:
 
     def __init__(self, State):
         # Values to store
-        Q = np.zeros((Sarsa.ns, Sarsa.na))
+        self.Q = np.zeros((Sarsa.ns, Sarsa.na))
         self.reward = 0
-        self.oldaction = 0
+        self.oldAction = 0
         self.nextAction = 0
         self.oldState = State
         self.nextState = State
@@ -46,23 +46,23 @@ class Sarsa:
     def update(self, State):
         self.nextState = State
         self.distance, self.angle, self.heading = State
-        self.nextIndex = self.angle * (theta * d) + self.heading * d + self.distance # error: out of bounds
+        self.nextIndex = self.angle * (Sarsa.theta * Sarsa.d) + self.heading * Sarsa.d + self.distance # error: out of bounds
         self.nextAction = self.chooseAction()
         self.rewardFunction(self.oldState[0])
-        self.updateQ(self)
+        self.updateQ()
         self.oldState = self.nextState
         self.oldAction = self.nextAction
         self.oldIndex = self.nextIndex
-        return nextAction
+        return self.nextAction
 
 
     def chooseAction(self):
         # Setting a random threshold
         rand = random.random()
-        if rand < explore:
-            action = random.randint(0, na-1)
+        if rand < Sarsa.explore:
+            action = random.randint(0, Sarsa.na-1)
         else:
-            action = np.argmax(Q[self.nextIndex])
+            action = np.argmax(self.Q[self.nextIndex])
         return action
 
     def rewardFunction(self, distance):
@@ -70,13 +70,8 @@ class Sarsa:
         self.reward = -(2500-(distance**2))/5
 
     def updateQ(self):
-        Q_val = Q[self.oldIndex][self.oldAction]
-        Q[self.oldIndex][self.oldAction] += alpha*(self.reward + lamda*Q[self.nextIndex, self.nextAction] - Q_val)
-
-
-
-
-
+        Q_val = self.Q[self.oldIndex][self.oldAction]
+        self.Q[self.oldIndex][self.oldAction] += Sarsa.alpha*(self.reward + Sarsa.lamda*self.Q[self.nextIndex, self.nextAction] - Q_val)
 
 
 # Create the action enumeration
