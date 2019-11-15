@@ -280,16 +280,16 @@ class Main:
         # Calculate the new heading that the plane must go to inact the desired action
         if action == Action.HL:
             newHeading = wrapToPi(heading-np.pi/2)
-            print("Doing 1")
+            # print("Doing 1")
         elif action == Action.ML:
             newHeading = wrapToPi(heading-np.pi/4)
-            print("Doing 2")
+            # print("Doing 2")
         elif action == Action.HR:
             newHeading = wrapToPi(heading+np.pi/2)
-            print("Doing 3")
+            # print("Doing 3")
         elif action == Action.MR:
             newHeading = wrapToPi(heading+np.pi/4)
-            print("Doing 4")
+            # print("Doing 4")
         else:
             print("Doing nothing")
             newWaypoint = None
