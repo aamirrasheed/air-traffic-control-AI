@@ -116,6 +116,7 @@ class AIGame:
 
     
     def step(self):
+        destination_airplanes = []
         if self.gameEndCode == 0:
             timepassed = self.clock.tick(conf.get()['game']['framerate'])
             self.screen.set_clip(pygame.Rect(0,0,AIGame.FSPANE_LEFT,AIGame.SCREEN_H))
@@ -152,7 +153,8 @@ class AIGame:
                 x.draw(self.screen)
 
             #Move/redraw/collide aircraft
-            self.__update()
+            # get airplanes that get destination reward
+            destination_airplanes = self.__update()
             self.__handleAircraftObstacleCollisions()
 
             self.screen.set_clip(None)
@@ -192,7 +194,7 @@ class AIGame:
         #self.__displayPostGameDialog()
 
         aircraft = self.aircraft
-        rewards = self.getRewards()
+        rewards = self.getRewards(destination_airplanes)
         collidingAircraft = self.getCollidingAircraft()
 
         return (aircraft, rewards, collidingAircraft, self.gameEndCode, self.score)
@@ -260,6 +262,9 @@ class AIGame:
             self.ms_eleapsed = 0
             self.__generateAircraftSpawnEvents()
             print("reset")
+        
+        # for calculation of 'reaching destination' reward
+        return ac_removal
 
     def __handleUserInteraction(self):
 
@@ -514,8 +519,11 @@ class AIGame:
         return list(potentialCollisions)
 
 
-    def getRewards(self):
+    def getRewards(self, destination_airplanes):
         '''
+            Input:
+            destination_airplanes: list of airplanes that have reached
+            destination, in order to propagate reward back
             Returns a list of rewards for each plane in a given timestep. 
 
             NOTE: The order of the rewards matters as they should correspond
@@ -525,8 +533,30 @@ class AIGame:
         '''
         rewards = []
         for plane in self.aircraft:
-            # Calculate reward for each plane 
-            rewards.append(0)
+            reward = 0
+
+            # get closest plane
+            loc = np.array(plane.getLocation())
+            closest_plane = None
+            closest_distance = np.inf
+            for plane2 in self.aircraft:
+                if plane is plane2:
+                    continue
+                loc2 = np.array(plane2.getLocation())
+                dist = np.linalg.norm(loc2-loc)
+                if dist < closest_distance:
+                    closest_distance = dist
+                    closest_plane = plane2
+            
+            # get distance reward. 0 at max radius, 500 at 0 distance.
+            radius = AIGame.POTENTIAL_COLLISION_THRESHOLD
+            reward += -(radius^2 - closest_distance^2)/(radius^2/500)
+
+            # get airport reached reward
+            if plane in destination_airplanes:
+                reward += 100
+
+            rewards.append(reward)
 
         return rewards
 
