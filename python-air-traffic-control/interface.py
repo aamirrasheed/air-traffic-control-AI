@@ -11,6 +11,8 @@ import menu_base
 import conf
 import argparse
 from enum import Enum
+import numpy as np
+import random as random
 from aircraft import Aircraft
 
 STATE_MENU = 1
@@ -20,6 +22,62 @@ STATE_HIGH = 4
 STATE_KILL = 5
 STATE_AGES = 6
 
+
+# Creating the sarsa class
+class Sarsa:
+    d = 200
+    rho = 36
+    theta = 36
+    na = 5
+    ns = d * rho * theta
+    explore = 0.1
+    alpha = 0.5
+    lamda = 0.2
+
+    def __init__(self, State):
+        # Values to store
+        self.Q = np.zeros((Sarsa.ns, Sarsa.na))
+        self.reward = 0
+        self.oldAction = 0
+        self.nextAction = 0
+        self.oldState = State
+        self.nextState = State
+        self.oldIndex = 0
+        self.nextIndex = 0
+        self.distance, self.angle, self.heading = State
+
+    def update(self, State):
+        self.nextState = State
+        self.distance, self.angle, self.heading = State
+        self.nextIndex = self.angle * (Sarsa.theta * Sarsa.d) + self.heading * Sarsa.d + self.distance # error: out of bounds
+        self.nextAction = self.chooseAction()
+        self.rewardFunction(self.oldState[0])
+        self.updateQ()
+        self.oldState = self.nextState
+        self.oldAction = self.nextAction
+        self.oldIndex = self.nextIndex
+        return self.nextAction
+
+
+    def chooseAction(self):
+        # Setting a random threshold
+        rand = random.random()
+        if rand < Sarsa.explore:
+            action = random.randint(0, Sarsa.na-1)
+        else:
+            action = np.argmax(self.Q[self.nextIndex])
+            #print(action)
+        return action
+
+    def rewardFunction(self, distance):
+        # ------- Need to implement +100 using the airport distance
+        self.reward = -(Sarsa.d**2-(distance**2))/(Sarsa.d**2/500)
+
+
+    def updateQ(self):
+        Q_val = self.Q[self.oldIndex][self.oldAction]
+        self.Q[self.oldIndex][self.oldAction] += Sarsa.alpha*(self.reward + Sarsa.lamda*self.Q[self.nextIndex, self.nextAction] - Q_val)
+        #print(self.Q)
 
 # Create the action enumeration
 class Action(Enum):
@@ -41,12 +99,12 @@ class Main:
         display.init()
         pygame.mixer.init()
         font.init()
-        
+
         if(conf.get()['game']['fullscreen'] == True):
             self.screen = display.set_mode((1024, 768), pygame.FULLSCREEN)
         else:
             self.screen = display.set_mode((1024, 768))
-            
+
         display.set_caption('ATC Version 2')
 
         self.menu = menu_base.menu_base(self.screen,150,25)
@@ -89,19 +147,27 @@ class Main:
                 game = AIGame(self.screen, False)
                 gameEndCode = 0
                 game.start()
-                while (gameEndCode == 0): 
-                    aircraft, rewards, collidingAircraft, gameEndCode, score = game.step()
+                sarsa = Sarsa((0,0,0))          # Initializing a Sarsa Object
+                while (gameEndCode == 0):
+                    aircraft, collidingAircraft, gameEndCode, score = game.step()
 
                     # Testing state function
                     if len(collidingAircraft) > 0:
                         for (plane1, plane2) in collidingAircraft:
-                            d1, rho1, theta1 = getState(plane1, plane2)
-                            d2, rho2, theta2 = getState(plane2, plane1)
-                            print("Plane Idents: {}, {}".format(plane1.getIdent(), plane2.getIdent()))
+                            d1, rho1, theta1 = self.getState(aircraft[plane1], aircraft[plane2])
+                            d2, rho2, theta2 = self.getState(aircraft[plane2], aircraft[plane1])
+                            #print("Plane Idents: {}, {}".format(plane1.getIdent(), plane2.getIdent()))
                             print("Distances: {}, {}".format(d1, d2))
                             print("Rhos: {}, {}".format(rho1, rho2))
                             print("Thetas: {}, {}\n".format(theta1, theta2))
+                            p1_action = sarsa.update((d1, rho1, theta1))
+                            p2_action = sarsa.update((d2, rho2, theta2))
+                            print("p1_actopm ",p1_action)
+                            print("p2_actopm ",p2_action)
+                            self.queueAction(aircraft[plane1], Action(p1_action))
+                            self.queueAction(aircraft[plane2], Action(p2_action))
                             break
+
 
                 self.infologger.add_value(self.id,'score',score)
                 if (gameEndCode == conf.get()['codes']['kill']):
@@ -121,8 +187,8 @@ class Main:
 
     def getState(self, plane1, plane2):
         '''
-            Calculates the state for plane1, given that plane2, is within the 
-            potential collision radius of plane1. 
+            Calculates the state for plane1, given that plane2, is within the
+            potential collision radius of plane1.
 
             Params:
                 plane1                          Aircraft object; The plane of interest (ownship)
@@ -133,9 +199,9 @@ class Main:
 
             The returned state should contain:
                 - d: The distance between the two planes, based on the norm of each plane's location field within the plane objects
-                
+
                 - rho: The angle of the plane2's location relative to the heading of plane1
-                
+
                 - theta: The heading of plane2 relative to the heading of
                 plane1
 
@@ -151,7 +217,7 @@ class Main:
         # Handle exception where you pass in the same plane
         if plane1.getIdent() == plane2.getIdent():
             raise Exception("Args plane1 and plane2 have the same identity: {}".format(plane1.getIdent()))
-        
+
         # helper function to calculate angles
         def wrapToPi(a):
             if isinstance(a, list):
@@ -159,7 +225,7 @@ class Main:
             return (a + np.pi) % (2*np.pi) - np.pi
 
 
-        # get locations & headings of planes     
+        # get locations & headings of planes
         loc1 = np.array(plane1.getLocation())
         loc2 = np.array(plane2.getLocation())
         d_vec = loc2 - loc1
@@ -172,29 +238,30 @@ class Main:
 
         ### calculate rho
         # absolute angle to other plane location
-        dirHeading = np.arctan(d_vec[1]/d_vec[0]) * 180/np.pi
-        rho_accurate = dirHeading - head1 
+        dirHeading = abs(np.arctan(d_vec[1]/d_vec[0]) * 180/np.pi)
+        rho_accurate = abs(dirHeading - head1)
 
         # put in bucket 0 to 35
         rho = int(np.around(rho_accurate/10))
 
         ### calculate theta
-        theta_accurate = head2 - head1
+        theta_accurate = abs(head2 - head1)
 
         # put in bucket 0 to 35
         theta = int(np.around(theta_accurate/10))
-        
+        d = int(d)
+
         return d, rho, theta
 
     def queueAction(self, plane, action):
         '''
-            Modifies the plane object to take the desired action set out by the 
+            Modifies the plane object to take the desired action set out by the
             agent.
 
             Params:
                 plane                           Aircraft object; Plane to take the action
-                action                          Action Class; The action to take 
-            
+                action                          Action Class; The action to take
+
             Returns:
                 None                            Modifies the plane object directly.
         '''
@@ -213,12 +280,16 @@ class Main:
         # Calculate the new heading that the plane must go to inact the desired action
         if action == Action.HL:
             newHeading = wrapToPi(heading-np.pi/2)
+            print("Doing 1")
         elif action == Action.ML:
             newHeading = wrapToPi(heading-np.pi/4)
+            print("Doing 2")
         elif action == Action.HR:
             newHeading = wrapToPi(heading+np.pi/2)
+            print("Doing 3")
         elif action == Action.MR:
             newHeading = wrapToPi(heading+np.pi/4)
+            print("Doing 4")
         else:
             print("Doing nothing")
             newWaypoint = None
@@ -235,7 +306,7 @@ class Main:
 
 def getArgs(parser):
     '''
-        Parses the command line arguments passed into the program call to change 
+        Parses the command line arguments passed into the program call to change
         the game configurations.
     '''
     parser.add_argument("-g", "--gametime", type=int, help="Gametime in seconds")
@@ -250,7 +321,7 @@ def getArgs(parser):
 
 def override_config(args):
     '''
-        Overrides the desired configurations from the command line. This only works because 
+        Overrides the desired configurations from the command line. This only works because
         main is the first to initialize the configuration dictionary, allowing us to change
         the global variable here and having the changes propagate to the rest of the files.
         Hacky but it works.
@@ -275,7 +346,7 @@ if __name__ == '__main__':
 
     # Initialize the command line parser
     parser = argparse.ArgumentParser("Configuration overrides for testing purposes.")
-    # Get the arguments 
+    # Get the arguments
     args = getArgs(parser)
     # Make the necessary changes to the game configuration
     override_config(args)

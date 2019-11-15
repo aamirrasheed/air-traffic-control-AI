@@ -22,7 +22,7 @@ class Aircraft:
 
     EVENT_CLICK_AC = 0
     EVENT_CLICK_FS = 1
-    
+
     FS_FONTSIZE = 18
 
 	#Constructor!
@@ -37,6 +37,7 @@ class Aircraft:
         self.waypoints = []
         self.collisionRisk = []
         self.waypoints.append(destination)
+        self.destination = destination
         self.ident = ident
         self.selected = False
         self.state = Aircraft.AC_STATE_NORMAL
@@ -59,7 +60,7 @@ class Aircraft:
 	#Get the specified waypoint from the list
     def getWaypoint(self, index):
         return self.waypoints[index]
-    
+
     def getWaypoints(self):
         return self.waypoints
 
@@ -75,12 +76,12 @@ class Aircraft:
         else:
             ret = self.heading
         return ret
-        
+
     def getHeadingStr(self):
         hdg = str(self.getHeading())
         hdg_str = hdg.split(".")[0]
         return hdg_str
-        
+
     def getIdent(self):
         return self.ident
 
@@ -100,7 +101,7 @@ class Aircraft:
         else:
             self.image = Aircraft.AC_IMAGE_NORMAL
             self.fs.deselect()
-            
+
     def requestSelected(self):
         self.game.requestSelected(self)
 
@@ -141,7 +142,7 @@ class Aircraft:
             if( len(self.waypoints) == 0):
                 #Reached destination, return True
                 return True
-		
+
 		#Keep moving towards waypoint
         self.heading = self.__calculateHeading(self.location, self.waypoints[0].getLocation())
         self.location = self.__calculateNewLocation(self.location, self.heading, self.speed)
@@ -149,10 +150,10 @@ class Aircraft:
 
     def getClickDistanceSq(self, clickpos):
         return Utility.locDistSq(clickpos, self.location)
-        
+
     def setFS(self, fs):
         self.fs = fs
-        
+
     def getFS(self):
         return self.fs
 

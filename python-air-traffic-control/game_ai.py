@@ -114,7 +114,7 @@ class AIGame:
         #Blank whole screen once.
         pygame.draw.rect(self.screen, (0, 0, 0), self.screen.get_rect())
 
-    
+
     def step(self):
         destination_airplanes = []
         if self.gameEndCode == 0:
@@ -194,10 +194,10 @@ class AIGame:
         #self.__displayPostGameDialog()
 
         aircraft = self.aircraft
-        rewards = self.getRewards(destination_airplanes)
+        #rewards = self.getRewards(destination_airplanes)
         collidingAircraft = self.getCollidingAircraft()
 
-        return (aircraft, rewards, collidingAircraft, self.gameEndCode, self.score)
+        return (aircraft, collidingAircraft, self.gameEndCode, self.score)
 
     #Request a new selected aircraft
     def requestSelected(self, ac):
@@ -262,7 +262,7 @@ class AIGame:
             self.ms_eleapsed = 0
             self.__generateAircraftSpawnEvents()
             print("reset")
-        
+
         # for calculation of 'reaching destination' reward
         return ac_removal
 
@@ -490,14 +490,14 @@ class AIGame:
     def getCollidingAircraft(self):
         '''
             Finds all pairs of planes in the game that are within the radius of
-            potential collision from each other. The function returns a list of 
+            potential collision from each other. The function returns a list of
             tuples, where each tuple contains the indices of the potentially
-            colliding planes in the aircraft list. 
-            
+            colliding planes in the aircraft list.
+
             For example, given a row element tuple (0,4) and the list of aircraft,
             aircraft, the planes of interest can be obtained through:
-                plane1 = aircraft[0] 
-                plane2 = aircraft[4] 
+                plane1 = aircraft[0]
+                plane2 = aircraft[4]
         '''
         potentialCollisions = set()
         for i,plane1 in enumerate(self.aircraft):
@@ -524,7 +524,7 @@ class AIGame:
             Input:
             destination_airplanes: list of airplanes that have reached
             destination, in order to propagate reward back
-            Returns a list of rewards for each plane in a given timestep. 
+            Returns a list of rewards for each plane in a given timestep.
 
             NOTE: The order of the rewards matters as they should correspond
             to the ordering of planes in the self.aircraft variable, such that
@@ -547,7 +547,7 @@ class AIGame:
                 if dist < closest_distance:
                     closest_distance = dist
                     closest_plane = plane2
-            
+
             # get distance reward. 0 at max radius, 500 at 0 distance.
             radius = AIGame.POTENTIAL_COLLISION_THRESHOLD
             reward += -(radius^2 - closest_distance^2)/(radius^2/500)
@@ -558,6 +558,4 @@ class AIGame:
 
             rewards.append(reward)
 
-        return rewards
-
-
+        #return rewards
