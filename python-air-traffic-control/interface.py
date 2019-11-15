@@ -11,6 +11,7 @@ import menu_base
 import conf
 import argparse
 from enum import Enum
+from aircraft import Aircraft
 
 STATE_MENU = 1
 STATE_GAME = 2
@@ -91,6 +92,17 @@ class Main:
                 while (gameEndCode == 0): 
                     aircraft, rewards, collidingAircraft, gameEndCode, score = game.step()
 
+                    # Testing state function
+                    if len(collidingAircraft) > 0:
+                        for (plane1, plane2) in collidingAircraft:
+                            d1, rho1, theta1 = getState(plane1, plane2)
+                            d2, rho2, theta2 = getState(plane2, plane1)
+                            print("Plane Idents: {}, {}".format(plane1.getIdent(), plane2.getIdent()))
+                            print("Distances: {}, {}".format(d1, d2))
+                            print("Rhos: {}, {}".format(rho1, rho2))
+                            print("Thetas: {}, {}\n".format(theta1, theta2))
+                            break
+
                 self.infologger.add_value(self.id,'score',score)
                 if (gameEndCode == conf.get()['codes']['kill']):
                     state = STATE_KILL
@@ -117,18 +129,62 @@ class Main:
                 plane2                          Aircraft object; The intruder plane
 
             Returns:
-                (distance, angle, heading)      Tuple that describes the state for plane1
+                (d, rho, theta)      Tuple that describes the state for plane1
 
             The returned state should contain:
-                - The distance between the two planes, based on the norm of each plane's 
-                location field within the plane objects
-                - The angle of the plane2's location relative to the heading of plane1
-                - The heading of plane1
+                - d: The distance between the two planes, based on the norm of each plane's location field within the plane objects
+                
+                - rho: The angle of the plane2's location relative to the heading of plane1
+                
+                - theta: The heading of plane2 relative to the heading of
+                plane1
 
             NOTE: In order to get the state of plane2, you have to call the function
             again with the order of the planes reversed.
         '''
-        return None
+        # Handle exception where you pass in the wrong type
+        if not isinstance(plane1, Aircraft):
+            raise Exception("Arg plane1 is type {}, must be type Aircraft".format(type(plane1)))
+        if not isinstance(plane2, Aircraft):
+            raise Exception("Arg plane2 is type {}, must be type Aircraft".format(type(plane2)))
+
+        # Handle exception where you pass in the same plane
+        if plane1.getIdent() == plane2.getIdent():
+            raise Exception("Args plane1 and plane2 have the same identity: {}".format(plane1.getIdent()))
+        
+        # helper function to calculate angles
+        def wrapToPi(a):
+            if isinstance(a, list):
+                return [(x + np.pi) % (2*np.pi) - np.pi for x in a]
+            return (a + np.pi) % (2*np.pi) - np.pi
+
+
+        # get locations & headings of planes     
+        loc1 = np.array(plane1.getLocation())
+        loc2 = np.array(plane2.getLocation())
+        d_vec = loc2 - loc1
+
+        head1 = plane1.getHeading()
+        head2 = plane2.getHeading()
+
+        ### calculate distance between planes
+        d = abs(np.linalg.norm(d_vec))
+
+        ### calculate rho
+        # absolute angle to other plane location
+        dirHeading = np.arctan(d_vec[1]/d_vec[0]) * 180/np.pi
+        rho_accurate = dirHeading - head1 
+
+        # put in bucket 0 to 35
+        rho = int(np.around(rho_accurate/10))
+
+        ### calculate theta
+        theta_accurate = head2 - head1
+
+        # put in bucket 0 to 35
+        theta = int(np.around(theta_accurate/10))
+        
+        return d, rho, theta
 
     def queueAction(self, plane, action):
         '''

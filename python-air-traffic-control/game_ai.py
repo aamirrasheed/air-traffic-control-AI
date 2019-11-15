@@ -423,10 +423,10 @@ class AIGame:
                         dist = Utility.locDistSq(spawns[x].getSpawnPoint(), spawns[y].getSpawnPoint())
                         dt = math.fabs(times[x] - times[y])
                         if ((dist < 25 ** 2) and (dt < 6000)):
-                            ret = True;
+                            ret = True
                             print("did observe this to be true")
                             print()
-                            brk = True;
+                            brk = True
                     y += 1
                 x += 1
         else:
@@ -497,6 +497,10 @@ class AIGame:
         potentialCollisions = set()
         for i,plane1 in enumerate(self.aircraft):
             for j,plane2 in enumerate(self.aircraft):
+                head1 = plane1.getHeading()
+                iden1 = plane1.getIdent()
+                loc1 = plane1.getLocation()
+                print("{} has heading {} loc {}".format(iden1, head1, loc1))
                 if (i == j):
                     continue
                 loc1 = plane1.getLocation()
@@ -504,7 +508,7 @@ class AIGame:
                 distance = np.linalg.norm(loc1 - loc2)
 
                 if (distance < AIGame.POTENTIAL_COLLISION_THRESHOLD and (j,i) not in potentialCollisions):
-                    #print("{} {}".format(plane1.getIdent(), plane2.getIdent()))
+                    # print("{} {}".format(plane1.getIdent(), plane2.getIdent()))
                     potentialCollisions.add((i,j))
 
         return list(potentialCollisions)
