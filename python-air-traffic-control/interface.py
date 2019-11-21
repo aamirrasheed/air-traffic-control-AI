@@ -10,9 +10,7 @@ import info_logger
 import menu_base
 import conf
 import argparse
-from enum import Enum
 import numpy as np
-import random as random
 from aircraft import Aircraft
 from mdp import *
 
@@ -84,21 +82,21 @@ class Main:
                 game = AIGame(self.screen, False)
                 gameEndCode = 0
                 game.start()
-                sarsa = Sarsa((0,0,0))          # Initializing a Sarsa Object
+                sarsa = Sarsa(State())          # Initializing a Sarsa Object
                 while (gameEndCode == 0):
-                    aircraft, collidingAircraft, gameEndCode, score = game.step()
+                    aircraft, rewards, collidingAircraft, gameEndCode, score = game.step()
 
                     # Testing state function
                     if len(collidingAircraft) > 0:
                         for (plane1, plane2) in collidingAircraft:
-                            d1, rho1, theta1 = self.getState(aircraft[plane1], aircraft[plane2])
-                            d2, rho2, theta2 = self.getState(aircraft[plane2], aircraft[plane1])
+                            state1 = self.getState(aircraft[plane1], aircraft[plane2])
+                            state2 = self.getState(aircraft[plane2], aircraft[plane1])
                             #print("Plane Idents: {}, {}".format(plane1.getIdent(), plane2.getIdent()))
-                            print("Distances: {}, {}".format(d1, d2))
-                            print("Rhos: {}, {}".format(rho1, rho2))
-                            print("Thetas: {}, {}\n".format(theta1, theta2))
-                            p1_action = sarsa.update((d1, rho1, theta1))
-                            p2_action = sarsa.update((d2, rho2, theta2))
+                            print("Distances: {}, {}".format(state1.d, state2.d))
+                            print("Rhos: {}, {}".format(state1.rho, state2.rho))
+                            print("Thetas: {}, {}\n".format(state1.theta, state1.theta))
+                            p1_action = sarsa.update(state1)
+                            p2_action = sarsa.update(state2)
                             print("p1_actopm ",p1_action)
                             print("p2_actopm ",p2_action)
                             self.queueAction(aircraft[plane1], Action(p1_action))
@@ -107,12 +105,13 @@ class Main:
 
 
                 self.infologger.add_value(self.id,'score',score)
+                print("GAME OVER")
                 if (gameEndCode == conf.get()['codes']['kill']):
                     state = STATE_KILL
                 elif (gameEndCode == conf.get()['codes']['user_end']):
                     state = STATE_MENU
                 elif (gameEndCode == conf.get()['codes']['ac_collide']):
-                    state = STATE_HIGH
+                    state = STATE_GAME
                 ##########################################################
                 ##########################################################
                 #                 END MAIN GAME SEQUENCE                 #
@@ -188,7 +187,7 @@ class Main:
         theta = int(np.around(theta_accurate/10))
         d = int(d)
 
-        return d, rho, theta
+        return State(d, rho, theta)
 
     def queueAction(self, plane, action):
         '''

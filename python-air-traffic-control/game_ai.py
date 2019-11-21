@@ -194,10 +194,10 @@ class AIGame:
         #self.__displayPostGameDialog()
 
         aircraft = self.getPlaneDict()
-        #rewards = self.getRewards(destination_airplanes)
+        rewards = self.getRewards(destination_airplanes)
         collidingAircraft = self.getCollidingAircraft()
 
-        return (aircraft, collidingAircraft, self.gameEndCode, self.score)
+        return (aircraft, rewards, collidingAircraft, self.gameEndCode, self.score)
 
     #Request a new selected aircraft
     def requestSelected(self, ac):
@@ -546,6 +546,13 @@ class AIGame:
         '''
         rewards = {}
         for plane in self.aircraft:
+            # Get the id of the plane to serve as the key in the rewards dictionary
+            id = plane.getIdent()
+
+            # TODO: Remove this placeholder when the final rewards function is complete
+            rewards[id] = 0
+            continue
+
             reward = 0
 
             # get closest plane
@@ -565,8 +572,6 @@ class AIGame:
             radius = AIGame.POTENTIAL_COLLISION_THRESHOLD
             reward += -(radius^2 - closest_distance^2)/(radius^2/500)
 
-            # Get the id of the plane to serve as the key in the rewards dictionary
-            id = plane.getIdent()
 
             rewards[id] = reward
 

@@ -13,24 +13,28 @@ class Sarsa:
     alpha = 0.5
     lamda = 0.2
 
-    def __init__(self, State):
+    def __init__(self, state):
         # Values to store
         self.Q = np.zeros((Sarsa.ns, Sarsa.na))
         self.reward = 0
         self.oldAction = 0
         self.nextAction = 0
-        self.oldState = State
-        self.nextState = State
+        self.oldState = state
+        self.nextState = state
         self.oldIndex = 0
         self.nextIndex = 0
-        self.distance, self.angle, self.heading = State
+        self.distance = state.d
+        self.angle = state.rho
+        self.heading = state.theta
 
-    def update(self, State):
-        self.nextState = State
-        self.distance, self.angle, self.heading = State
+    def update(self, state):
+        self.nextState = state
+        self.distance = state.d
+        self.angle = state.rho
+        self.heading = state.theta
         self.nextIndex = self.angle * (Sarsa.theta * Sarsa.d) + self.heading * Sarsa.d + self.distance # error: out of bounds
         self.nextAction = self.chooseAction()
-        self.rewardFunction(self.oldState[0])
+        self.rewardFunction(self.oldState.d)
         self.updateQ()
         self.oldState = self.nextState
         self.oldAction = self.nextAction
@@ -65,3 +69,11 @@ class Action(Enum):
     ML = 2  # Mid Left
     MR = 3  # Mid Right
     HR = 4  # Hard Right
+
+# Create the state object 
+class State:
+    def __init__(self, d=0, rho=0, theta=0):
+        self.d = d
+        self.rho = rho
+        self.theta = theta
+
