@@ -193,7 +193,7 @@ class AIGame:
         #Game over, display game over message
         #self.__displayPostGameDialog()
 
-        aircraft = self.aircraft
+        aircraft = self.getPlaneDict()
         #rewards = self.getRewards(destination_airplanes)
         collidingAircraft = self.getCollidingAircraft()
 
@@ -216,6 +216,7 @@ class AIGame:
         #2: Check if any aircraft have collided with an obstacle
         #3: Check if any aircraft have reached a destination
         ac_removal = []
+        completed_aircraft = []
 
         for n in range(0, len(self.aircraft)):
             a = self.aircraft[n]
@@ -238,6 +239,7 @@ class AIGame:
         for a in ac_removal:
             if(self.ac_selected == a):
                 self.requestSelected(None)
+            completed_aircraft.append(a.getIdent())
             self.aircraft.remove(a)
             self.cnt_fspane.remove(a.getFS())
             self.cnt_fspane.repaint()
@@ -264,7 +266,7 @@ class AIGame:
             print("reset")
 
         # for calculation of 'reaching destination' reward
-        return ac_removal
+        return completed_aircraft
 
     def __handleUserInteraction(self):
 
@@ -487,6 +489,19 @@ class AIGame:
                 pygame.display.flip()
 
 
+    def getPlaneDict(self):
+        '''
+            Creates a dictionary of all active planes where the key to the dictionary 
+            is the plane ID and the value is the aircraft object.
+        '''
+        planeDict = {}
+        for plane in self.aircraft:
+            id = plane.getIdent()
+            planeDict[id] = plane
+        
+        return planeDict
+
+
     def getCollidingAircraft(self):
         '''
             Finds all pairs of planes in the game that are within the radius of
@@ -502,36 +517,34 @@ class AIGame:
         potentialCollisions = set()
         for i,plane1 in enumerate(self.aircraft):
             for j,plane2 in enumerate(self.aircraft):
-                head1 = plane1.getHeading()
-                iden1 = plane1.getIdent()
-                loc1 = plane1.getLocation()
-                print("{} has heading {} loc {}".format(iden1, head1, loc1))
                 if (i == j):
                     continue
                 loc1 = plane1.getLocation()
+                planeId1 = plane1.getIdent()
                 loc2 = plane2.getLocation()
+                planeId2 = plane2.getIdent()
                 distance = np.linalg.norm(loc1 - loc2)
 
-                if (distance < AIGame.POTENTIAL_COLLISION_THRESHOLD and (j,i) not in potentialCollisions):
-                    # print("{} {}".format(plane1.getIdent(), plane2.getIdent()))
-                    potentialCollisions.add((i,j))
+                if (distance < AIGame.POTENTIAL_COLLISION_THRESHOLD and (planeId2,planeId1) not in potentialCollisions):
+                    potentialCollisions.add((planeId1,planeId2))
 
         return list(potentialCollisions)
 
 
     def getRewards(self, destination_airplanes):
         '''
-            Input:
-            destination_airplanes: list of airplanes that have reached
-            destination, in order to propagate reward back
-            Returns a list of rewards for each plane in a given timestep.
+            Params:
+                destination_airplanes           list, airplanes that have reached their destination and 
+                                                have been removed from the airplane list
 
-            NOTE: The order of the rewards matters as they should correspond
-            to the ordering of planes in the self.aircraft variable, such that
-            iterating through zip(rewards, aircraft) would return the reward for
-            that particular aircraft.
+            Returns:
+                rewards                         dictionary, rewards for a given timestep with the plane id as the key 
+
+            NOTE: The number of elements in the rewards dictionary may exceed the number of elements
+            in the plane dictionary because the rewards dictionary contains plane that have reaches their 
+            destination and have thereby been removed from the planes dictionary.
         '''
-        rewards = []
+        rewards = {}
         for plane in self.aircraft:
             reward = 0
 
@@ -552,10 +565,13 @@ class AIGame:
             radius = AIGame.POTENTIAL_COLLISION_THRESHOLD
             reward += -(radius^2 - closest_distance^2)/(radius^2/500)
 
-            # get airport reached reward
-            if plane in destination_airplanes:
-                reward += 100
+            # Get the id of the plane to serve as the key in the rewards dictionary
+            id = plane.getIdent()
 
-            rewards.append(reward)
+            rewards[id] = reward
 
-        #return rewards
+        # Add a high reward for all the plane that have reached their destination
+        for id in destination_airplanes:
+            rewards[id] = 100
+
+        return rewards

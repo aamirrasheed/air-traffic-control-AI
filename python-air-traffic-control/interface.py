@@ -14,6 +14,7 @@ from enum import Enum
 import numpy as np
 import random as random
 from aircraft import Aircraft
+from mdp import *
 
 STATE_MENU = 1
 STATE_GAME = 2
@@ -22,73 +23,9 @@ STATE_HIGH = 4
 STATE_KILL = 5
 STATE_AGES = 6
 
-
-# Creating the sarsa class
-class Sarsa:
-    d = 200
-    rho = 36
-    theta = 36
-    na = 5
-    ns = d * rho * theta
-    explore = 0.1
-    alpha = 0.5
-    lamda = 0.2
-
-    def __init__(self, State):
-        # Values to store
-        self.Q = np.zeros((Sarsa.ns, Sarsa.na))
-        self.reward = 0
-        self.oldAction = 0
-        self.nextAction = 0
-        self.oldState = State
-        self.nextState = State
-        self.oldIndex = 0
-        self.nextIndex = 0
-        self.distance, self.angle, self.heading = State
-
-    def update(self, State):
-        self.nextState = State
-        self.distance, self.angle, self.heading = State
-        self.nextIndex = self.angle * (Sarsa.theta * Sarsa.d) + self.heading * Sarsa.d + self.distance # error: out of bounds
-        self.nextAction = self.chooseAction()
-        self.rewardFunction(self.oldState[0])
-        self.updateQ()
-        self.oldState = self.nextState
-        self.oldAction = self.nextAction
-        self.oldIndex = self.nextIndex
-        return self.nextAction
-
-
-    def chooseAction(self):
-        # Setting a random threshold
-        rand = random.random()
-        if rand < Sarsa.explore:
-            action = random.randint(0, Sarsa.na-1)
-        else:
-            action = np.argmax(self.Q[self.nextIndex])
-            #print(action)
-        return action
-
-    def rewardFunction(self, distance):
-        # ------- Need to implement +100 using the airport distance
-        self.reward = -(Sarsa.d**2-(distance**2))/(Sarsa.d**2/500)
-
-
-    def updateQ(self):
-        Q_val = self.Q[self.oldIndex][self.oldAction]
-        self.Q[self.oldIndex][self.oldAction] += Sarsa.alpha*(self.reward + Sarsa.lamda*self.Q[self.nextIndex, self.nextAction] - Q_val)
-        #print(self.Q)
-
-# Create the action enumeration
-class Action(Enum):
-    N = 0   # Nothing
-    HL = 1  # Hard Left
-    ML = 2  # Mid Left
-    MR = 3  # Mid Right
-    HR = 4  # Hard Right
-
 # Define the distance a plane should be re-routed to when given an action
 REROUTE_DISTANCE = 50
+
 
 class Main:
 

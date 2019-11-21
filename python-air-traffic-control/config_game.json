@@ -35,7 +35,7 @@
 		"n_spawnpoints":50,
 		"n_destinations":1,
 		"n_obstacles":0,
-		"framerate":40,
+		"framerate":80,
 		"fullscreen":false,
 		"n_highscores":30
 	},
@@ -59,7 +59,7 @@
 		"speed_max":1000,
 		"speed_default":800,
 		"speed_scalefactor":2000.0,
-		"collision_radius":20,
+		"collision_radius":50,
 		"draw_radius":false
 	}
 }

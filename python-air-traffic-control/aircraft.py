@@ -113,7 +113,7 @@ class Aircraft:
         surface.blit(rot_image, rect)
 
         if(conf.get()['aircraft']['draw_radius'] == True):
-            pygame.draw.circle(surface, (255, 255, 0), self.location, conf.get()['aircraft']['collision_radius'], 1)
+            pygame.draw.circle(surface, (255, 255, 0), (int(self.location[0]), int(self.location[1])), int(conf.get()['aircraft']['collision_radius']), 1)
 
         #Draw lines and waypoints if selected
         if(True == True):
