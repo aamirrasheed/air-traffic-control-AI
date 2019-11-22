@@ -194,8 +194,8 @@ class AIGame:
         #self.__displayPostGameDialog()
 
         aircraft = self.getPlaneDict()
-        rewards = self.getRewards(destination_airplanes)
-        collidingAircraft = self.getCollidingAircraft()
+        collidingAircraft, collisionSet = self.getCollidingAircraft()
+        rewards = self.getRewards(destination_airplanes, collisionSet)
 
         return (aircraft, rewards, collidingAircraft, self.gameEndCode, self.score)
 
@@ -255,7 +255,7 @@ class AIGame:
                         sp = self.aircraftspawns[0]
                     # Do we still have to take care of times????
                 if(len(self.aircraft) < math.floor(AIGame.FSPANE_H / 60)):
-                    ac = Aircraft(self, sp.getSpawnPoint(), conf.get()['aircraft']['speed_default'], sp.getDestination(), "BA" + str(random.randint(1, 100)))
+                    ac = Aircraft(self, sp.getSpawnPoint(), conf.get()['aircraft']['speed_default'], sp.getDestination(), "BA" + str(random.randint(1, 100000000)))
                     self.aircraft.append(ac)
                     self.cnt_fspane.addNewFlightStrip(ac)
                 self.aircraftspawns.remove(sp)      # Removes the previous spawn point
@@ -373,10 +373,10 @@ class AIGame:
                 if (Utility.locDistSq(a.getLocation(), at.getLocation()) < ((3 * conf.get()['aircraft']['collision_radius']) ** 2) ):
                     #a.state = Aircraft.AC_STATE_NEAR
                     a.image = Aircraft.AC_IMAGE_NEAR
-                    if self.demomode == False:
+                    #if self.demomode == False:
                         #Checking if the sound is already playing. (Happens alot)
-                        if not self.channel_warning.get_busy():
-                            self.channel_warning.play(self.sound_warning)
+                        #if not self.channel_warning.get_busy():
+                            #self.channel_warning.play(self.sound_warning)
                     break
                 else:
                     if (a.selected):
@@ -402,8 +402,6 @@ class AIGame:
     def __generateAircraftSpawnEvents(self):
         (self.aircraftspawntimes, self.aircraftspawns) = AircraftSpawnEvent.generateGameSpawnEvents(AIGame.AERIALPANE_W, AIGame.AERIALPANE_H, self.destinations)
         while self.__areSpawnEventsTooClose(self.aircraftspawntimes, self.aircraftspawns) == True: # If spawn events are too close try to fix it
-            print("they were too close")
-            print()
             (self.aircraftspawntimes, self.aircraftspawns) = AircraftSpawnEvent.generateGameSpawnEvents(AIGame.AERIALPANE_W, AIGame.AERIALPANE_H, self.destinations)
 
     """
@@ -431,8 +429,6 @@ class AIGame:
                         dt = math.fabs(times[x] - times[y])
                         if ((dist < 25 ** 2) and (dt < 6000)):
                             ret = True
-                            print("did observe this to be true")
-                            print()
                             brk = True
                     y += 1
                 x += 1
@@ -466,8 +462,8 @@ class AIGame:
 
             if(self.gameEndCode == conf.get()['codes']['ac_collide']):
                 # Check if sound is playing and if not play it. (Probably never happen in this call)
-                if not self.channel_collision.get_busy():
-                    self.channel_collision.play(self.sound_collision)
+                #if not self.channel_collision.get_busy():
+                    #self.channel_collision.play(self.sound_collision)
                 c.add(gui.Label("COLLISION!!!!"), 0, 0)
             elif(self.gameEndCode == conf.get()['codes']['time_up']):
                 c.add(gui.Label("Time up!"), 0, 0)
@@ -515,6 +511,7 @@ class AIGame:
                 plane2 = aircraft[4]
         '''
         potentialCollisions = set()
+        collisionPlanes = set()
         for i,plane1 in enumerate(self.aircraft):
             for j,plane2 in enumerate(self.aircraft):
                 if (i == j):
@@ -527,11 +524,15 @@ class AIGame:
 
                 if (distance < AIGame.POTENTIAL_COLLISION_THRESHOLD and (planeId2,planeId1) not in potentialCollisions):
                     potentialCollisions.add((planeId1,planeId2))
+                    if planeId1 not in collisionPlanes:
+                        collisionPlanes.add(planeId1)
+                    if planeId2 not in collisionPlanes:
+                        collisionPlanes.add(planeId2)
 
-        return list(potentialCollisions)
+        return list(potentialCollisions), collisionPlanes
 
 
-    def getRewards(self, destination_airplanes):
+    def getRewards(self, destination_airplanes, collision_set):
         '''
             Params:
                 destination_airplanes           list, airplanes that have reached their destination and 
@@ -545,33 +546,31 @@ class AIGame:
             destination and have thereby been removed from the planes dictionary.
         '''
         rewards = {}
+        planes = self.getPlaneDict()
         for plane in self.aircraft:
             # Get the id of the plane to serve as the key in the rewards dictionary
             id = plane.getIdent()
 
-            # TODO: Remove this placeholder when the final rewards function is complete
-            rewards[id] = 0
-            continue
-
             reward = 0
 
-            # get closest plane
             loc = np.array(plane.getLocation())
             closest_plane = None
             closest_distance = np.inf
-            for plane2 in self.aircraft:
-                if plane is plane2:
-                    continue
-                loc2 = np.array(plane2.getLocation())
-                dist = np.linalg.norm(loc2-loc)
-                if dist < closest_distance:
-                    closest_distance = dist
-                    closest_plane = plane2
+            if id in collision_set:
+                # get closest plane
+                for plane2id in collision_set:
+                    plane2 = planes[plane2id]
+                    if plane is plane2:
+                        continue
+                    loc2 = np.array(plane2.getLocation())
+                    dist = np.linalg.norm(loc2-loc)
+                    if dist < closest_distance:
+                        closest_distance = dist
+                        closest_plane = plane2
 
-            # get distance reward. 0 at max radius, 500 at 0 distance.
-            radius = AIGame.POTENTIAL_COLLISION_THRESHOLD
-            reward += -(radius^2 - closest_distance^2)/(radius^2/500)
-
+                # get distance reward. 0 at max radius, 500 at 0 distance.
+                radius = AIGame.POTENTIAL_COLLISION_THRESHOLD
+                reward += -(radius**2 - closest_distance**2)/(radius**2/500)
 
             rewards[id] = reward
 
