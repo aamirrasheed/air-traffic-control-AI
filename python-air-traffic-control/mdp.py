@@ -27,14 +27,14 @@ class Sarsa:
         self.angle = state.rho
         self.heading = state.theta
 
-    def update(self, state):
+    def update(self, state, reward):
         self.nextState = state
         self.distance = state.d
         self.angle = state.rho
         self.heading = state.theta
         self.nextIndex = self.angle * (Sarsa.theta * Sarsa.d) + self.heading * Sarsa.d + self.distance # error: out of bounds
         self.nextAction = self.chooseAction()
-        self.rewardFunction(self.oldState.d)
+        self.reward = reward
         self.updateQ()
         self.oldState = self.nextState
         self.oldAction = self.nextAction
@@ -51,11 +51,6 @@ class Sarsa:
             action = np.argmax(self.Q[self.nextIndex])
             #print(action)
         return action
-
-    def rewardFunction(self, distance):
-        # ------- Need to implement +100 using the airport distance
-        self.reward = -(Sarsa.d**2-(distance**2))/(Sarsa.d**2/500)
-
 
     def updateQ(self):
         Q_val = self.Q[self.oldIndex][self.oldAction]
