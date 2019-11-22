@@ -29,7 +29,7 @@ class Main:
 
     BG_COLOR = (0, 0, 0)
 
-    def __init__(self):
+    def __init__(self, qTableFile=None):
         #Init the modules we need
         display.init()
         pygame.mixer.init()
@@ -51,10 +51,21 @@ class Main:
         #Current visitor number
         self.id = int(self.infologger.get_id())
 
+
+        # Initializing a default Sarsa object or with a pre-initialized Q-table
+        if qTableFile is None:
+            self.sarsa = Sarsa()          
+        else:
+            self.sarsa = Sarsa(qTableFile)          
+        # Keep track of the running planes and their previous state and action
+        # Key is the plane ID and the value is the tuple (state, action)
+        self.planeHistory = {}
+
     def run(self):
         state = STATE_GAME
         exit = 0
         score = 0
+        episodes = 0
 
         while (exit == 0):
             if (state == STATE_MENU):
@@ -82,22 +93,21 @@ class Main:
                 game = AIGame(self.screen, False)
                 gameEndCode = 0
                 game.start()
-                sarsa = Sarsa(State())          # Initializing a Sarsa Object
                 while (gameEndCode == 0):
                     aircraft, rewards, collidingAircraft, gameEndCode, score = game.step()
-
-                    # Testing state function
-                    for (plane1, plane2) in collidingAircraft:
-                        state1 = self.getState(aircraft[plane1], aircraft[plane2])
-                        state2 = self.getState(aircraft[plane2], aircraft[plane1])
-                        p1_action = sarsa.update(state1, rewards[plane1])
-                        p2_action = sarsa.update(state2, rewards[plane2])
-                        self.queueAction(aircraft[plane1], Action(p1_action))
-                        self.queueAction(aircraft[plane2], Action(p2_action))
-
+                    self.trainSarsa(aircraft, collidingAircraft, rewards)
 
                 self.infologger.add_value(self.id,'score',score)
-                print("GAME OVER")
+                print("Episode {} over.".format(episodes))
+                episodes += 1
+
+                # Save the Q table every 100 episodes to save progress
+                if episodes != 0 and episodes % 10 == 0:
+                    self.sarsa.saveQ("q_tables/initialTestRun_{}.pickle".format(episodes))
+
+                # Clear the plane history at the restart of every game
+                self.planeHistory.clear()
+
                 if (gameEndCode == conf.get()['codes']['kill']):
                     state = STATE_KILL
                 elif (gameEndCode == conf.get()['codes']['user_end']):
@@ -112,6 +122,45 @@ class Main:
             elif (state == STATE_KILL):
                 exit = 1
             game = None
+
+    def trainSarsa(self, aircraft, collidingAircraft, rewards):
+        '''
+            Performs the main training sequence for the MDP. Gets the states for every pair 
+            of colliding planes, gets the desired action to take for each plane, and also updates
+            the Q tables for continuous learning. 
+
+            Params:
+                aircraft                dict, stores the aircraft object indexed by the plane ids
+                collidingAircraft       list, tuples that contain two plane ids of planes that are close to colliding
+                rewards                 dict, stores the rewards that each plane should get indexed by their ids
+            
+            Returns: 
+                None
+        '''
+        # TODO: Propagate the fact that a plane has reached its destination to the Q table. Not sure 
+        # what the best way to do that is. 
+
+        for (plane1, plane2) in collidingAircraft:
+            state1 = self.getState(aircraft[plane1], aircraft[plane2])
+            state2 = self.getState(aircraft[plane2], aircraft[plane1])
+
+            # If the states have not been seen yet, then they cannot be updated since they do 
+            # not have a previous state so place an holder entry for now and skip the update
+            if plane1 not in self.planeHistory:
+                self.planeHistory[plane1] = (state1, Action.N.value)
+            else:
+                history = self.planeHistory[plane1]
+                p1_action = self.sarsa.update(history[0], history[1], state1, rewards[plane1])
+                self.planeHistory[plane1] = (state1, p1_action)
+                self.queueAction(aircraft[plane1], Action(p1_action))
+
+            if plane2 not in self.planeHistory:
+                self.planeHistory[plane2] = (state2, Action.N.value)
+            else:
+                history = self.planeHistory[plane2]
+                p2_action = self.sarsa.update(history[0], history[1], state2, rewards[plane2])
+                self.planeHistory[plane2] = (state2, p2_action)
+                self.queueAction(aircraft[plane2], Action(p2_action))
 
     def getState(self, plane1, plane2):
         '''
@@ -208,18 +257,13 @@ class Main:
         # Calculate the new heading that the plane must go to inact the desired action
         if action == Action.HL:
             newHeading = wrapToPi(heading-np.pi/2)
-            # print("Doing 1")
         elif action == Action.ML:
             newHeading = wrapToPi(heading-np.pi/4)
-            # print("Doing 2")
         elif action == Action.HR:
             newHeading = wrapToPi(heading+np.pi/2)
-            # print("Doing 3")
         elif action == Action.MR:
             newHeading = wrapToPi(heading+np.pi/4)
-            # print("Doing 4")
         else:
-            print("Doing nothing")
             newWaypoint = None
 
         if (newWaypoint):
@@ -244,6 +288,7 @@ def getArgs(parser):
     parser.add_argument("-o", "--obstacles", type=int, help="Number of obstacles")
     parser.add_argument("-f", "--fullscreen", action="store_true", help="Toggle fullscreen mode")
     parser.add_argument("-fr", "--framerate", type=int, help="Framerate of the game")
+    parser.add_argument("-q", "--q_table", type=str, help="Filepath of a precalculated q table.")
     return parser.parse_args()
 
 
@@ -279,5 +324,8 @@ if __name__ == '__main__':
     # Make the necessary changes to the game configuration
     override_config(args)
 
-    game_main = Main()
+    if args.q_table is None:
+        game_main = Main()
+    else:
+        game_main = Main(args.q_table)
     game_main.run()
