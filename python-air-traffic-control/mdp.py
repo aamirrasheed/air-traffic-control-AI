@@ -1,6 +1,7 @@
 from enum import Enum
 import numpy as np
 import random as random
+import pickle
 
 # Creating the sarsa class
 class Sarsa:
@@ -13,49 +14,50 @@ class Sarsa:
     alpha = 0.5
     lamda = 0.2
 
-    def __init__(self, state):
-        # Values to store
-        self.Q = np.zeros((Sarsa.ns, Sarsa.na))
-        self.reward = 0
-        self.oldAction = 0
-        self.nextAction = 0
-        self.oldState = state
-        self.nextState = state
-        self.oldIndex = 0
-        self.nextIndex = 0
-        self.distance = state.d
-        self.angle = state.rho
-        self.heading = state.theta
+    def __init__(self, qTableFile=None):
+        # Initialize the q table as empty or with a file
+        if qTableFile is None:
+            self.Q = {}
+        else:
+            self.loadQ(qTableFile)
 
-    def update(self, state, reward):
-        self.nextState = state
-        self.distance = state.d
-        self.angle = state.rho
-        self.heading = state.theta
-        self.nextIndex = self.angle * (Sarsa.theta * Sarsa.d) + self.heading * Sarsa.d + self.distance # error: out of bounds
-        self.nextAction = self.chooseAction()
-        self.reward = reward
-        self.updateQ()
-        self.oldState = self.nextState
-        self.oldAction = self.nextAction
-        self.oldIndex = self.nextIndex
-        return self.nextAction
+    def update(self, prevState, prevAction, state, reward):
+        # If the state has never been seen before, initialize the state with 0 values for all actions
+        if prevState not in self.Q:
+            self.Q[prevState] = [0] * Sarsa.na
+        if state not in self.Q:
+            self.Q[state] = [0] * Sarsa.na
 
+        action = self.chooseAction(state)
+        self.updateQ(prevState, prevAction, reward, state, action)
+        return action
 
-    def chooseAction(self):
+    def chooseAction(self, state):
         # Setting a random threshold
         rand = random.random()
         if rand < Sarsa.explore:
-            action = random.randint(0, Sarsa.na-1)
+            action = random.randint(0,self.na-1)
         else:
-            action = np.argmax(self.Q[self.nextIndex])
-            #print(action)
+            action = np.argmax(self.Q[state])
         return action
 
-    def updateQ(self):
-        Q_val = self.Q[self.oldIndex][self.oldAction]
-        self.Q[self.oldIndex][self.oldAction] += Sarsa.alpha*(self.reward + Sarsa.lamda*self.Q[self.nextIndex, self.nextAction] - Q_val)
-        #print(self.Q)
+    def updateQ(self, prevState, prevAction, reward, state, action):
+        Q_val = self.Q[prevState][prevAction]
+        self.Q[prevState][prevAction] += Sarsa.alpha*(reward + Sarsa.lamda*self.Q[state][action] - Q_val)
+
+    def saveQ(self, filename="q_tables/default.pickle"):
+        # Saves the Q table in a file we can access later
+        with open(filename, 'wb') as handle:
+            pickle.dump(self.Q, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        print("Q Table saved at {}!".format(filename))
+
+    def loadQ(self, filename="q_tables/default.pickle"):
+        # Loads a previously trained Q table
+        with open(filename, 'rb') as handle:
+            self.Q = pickle.load(handle)
+        print("Q Table {} loaded!".format(filename))
+
+
 
 # Create the action enumeration
 class Action(Enum):
