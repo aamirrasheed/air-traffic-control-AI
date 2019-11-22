@@ -54,7 +54,7 @@
 		"kill":-10
 	},
 	"aircraft":{
-		"max_waypoints":6,
+		"max_waypoints":1,
 		"speed_min":100,
 		"speed_max":1000,
 		"speed_default":800,
