@@ -550,6 +550,9 @@ class AIGame:
         for plane in self.aircraft:
             # Get the id of the plane to serve as the key in the rewards dictionary
             id = plane.getIdent()
+            # print("plane: ",plane)
+            dest = plane.destination.getLocation()
+            # print("dest: ",dest)
 
             reward = 0
 
@@ -570,7 +573,12 @@ class AIGame:
 
                 # get distance reward. 0 at max radius, 500 at 0 distance.
                 radius = AIGame.POTENTIAL_COLLISION_THRESHOLD
-                reward += -(radius**2 - closest_distance**2)/(radius**2/500)
+                dist_rew = -(radius**2 - closest_distance**2)/(radius**2/500)
+                # print("dist_rew: ", dist_rew)
+                dest_rew = -0.1*(np.linalg.norm(dest-loc)+1)
+                # print("dest_rew: ", dest_rew)
+                reward += dist_rew + dist_rew
+                # print(reward)
 
             rewards[id] = reward
 
