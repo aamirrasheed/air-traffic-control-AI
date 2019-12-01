@@ -54,9 +54,9 @@ class Main:
 
         # Initializing a default Sarsa object or with a pre-initialized Q-table
         if qTableFile is None:
-            self.sarsa = Sarsa()          
+            self.sarsa = Sarsa()
         else:
-            self.sarsa = Sarsa(qTableFile)          
+            self.sarsa = Sarsa(qTableFile)
         # Keep track of the running planes and their previous state and action
         # Key is the plane ID and the value is the tuple (state, action)
         self.planeHistory = {}
@@ -95,6 +95,7 @@ class Main:
                 game.start()
                 while (gameEndCode == 0):
                     aircraft, rewards, collidingAircraft, gameEndCode, score = game.step()
+                    print("Length of colliding aircraft: {}".format(len(collidingAircraft)))
                     self.trainSarsa(aircraft, collidingAircraft, rewards)
 
                 self.infologger.add_value(self.id,'score',score)
@@ -125,26 +126,39 @@ class Main:
 
     def trainSarsa(self, aircraft, collidingAircraft, rewards):
         '''
-            Performs the main training sequence for the MDP. Gets the states for every pair 
+            Performs the main training sequence for the MDP. Gets the states for every pair
             of colliding planes, gets the desired action to take for each plane, and also updates
-            the Q tables for continuous learning. 
+            the Q tables for continuous learning.
 
             Params:
                 aircraft                dict, stores the aircraft object indexed by the plane ids
                 collidingAircraft       list, tuples that contain two plane ids of planes that are close to colliding
                 rewards                 dict, stores the rewards that each plane should get indexed by their ids
-            
-            Returns: 
+
+            Returns:
                 None
         '''
-        # TODO: Propagate the fact that a plane has reached its destination to the Q table. Not sure 
-        # what the best way to do that is. 
+        # TODO: Propagate the fact that a plane has reached its destination to the Q table. Not sure
+        # what the best way to do that is.
 
         for (plane1, plane2) in collidingAircraft:
             state1 = self.getState(aircraft[plane1], aircraft[plane2])
             state2 = self.getState(aircraft[plane2], aircraft[plane1])
 
-            # If the states have not been seen yet, then they cannot be updated since they do 
+
+            ## Getting distance to destination for the two planes
+            dest1 = aircraft[plane1].destination.getLocation()
+            dest2 = aircraft[plane2].destination.getLocation()
+            # get locations & headings of planes
+            loc1 = np.array(aircraft[plane1].getLocation())
+            loc2 = np.array(aircraft[plane2].getLocation())
+            d1_vec = loc1 - dest1
+            d2_vec = loc2 - dest2
+            ### calculate distance between planes
+            d1 = abs(np.linalg.norm(d1_vec))
+            d2 = abs(np.linalg.norm(d2_vec))
+
+            # If the states have not been seen yet, then they cannot be updated since they do
             # not have a previous state so place an holder entry for now and skip the update
             if plane1 not in self.planeHistory:
                 self.planeHistory[plane1] = (state1, Action.N.value)
@@ -152,7 +166,8 @@ class Main:
                 history = self.planeHistory[plane1]
                 p1_action = self.sarsa.update(history[0], history[1], state1, rewards[plane1])
                 self.planeHistory[plane1] = (state1, p1_action)
-                self.queueAction(aircraft[plane1], Action(p1_action))
+                if (d1 > 100):
+                    self.queueAction(aircraft[plane1], Action(p1_action))
 
             if plane2 not in self.planeHistory:
                 self.planeHistory[plane2] = (state2, Action.N.value)
@@ -160,7 +175,8 @@ class Main:
                 history = self.planeHistory[plane2]
                 p2_action = self.sarsa.update(history[0], history[1], state2, rewards[plane2])
                 self.planeHistory[plane2] = (state2, p2_action)
-                self.queueAction(aircraft[plane2], Action(p2_action))
+                if (d2 > 100):
+                    self.queueAction(aircraft[plane2], Action(p2_action))
 
     def getState(self, plane1, plane2):
         '''
@@ -258,11 +274,11 @@ class Main:
         if action == Action.HL:
             newHeading = wrapToPi(heading-np.pi/2)
         elif action == Action.ML:
-            newHeading = wrapToPi(heading-np.pi/4)
+            newHeading = wrapToPi(heading-np.pi/8)
         elif action == Action.HR:
             newHeading = wrapToPi(heading+np.pi/2)
         elif action == Action.MR:
-            newHeading = wrapToPi(heading+np.pi/4)
+            newHeading = wrapToPi(heading+np.pi/8)
         else:
             newWaypoint = None
 
