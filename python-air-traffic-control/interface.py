@@ -24,6 +24,9 @@ STATE_AGES = 6
 # Define the distance a plane should be re-routed to when given an action
 REROUTE_DISTANCE = 50
 
+# Define the distance away from the airport where planes cannot reroute
+MIN_AIRPORT_DISTANCE = 50
+
 
 class Main:
 
@@ -95,7 +98,6 @@ class Main:
                 game.start()
                 while (gameEndCode == 0):
                     aircraft, rewards, collidingAircraft, gameEndCode, score = game.step()
-                    print("Length of colliding aircraft: {}".format(len(collidingAircraft)))
                     self.trainSarsa(aircraft, collidingAircraft, rewards)
 
                 self.infologger.add_value(self.id,'score',score)
@@ -141,7 +143,15 @@ class Main:
         # TODO: Propagate the fact that a plane has reached its destination to the Q table. Not sure
         # what the best way to do that is.
 
+        # Handle all of the planes that are in collision radius of each other and keep track of the planes
+        handledPlanes = []
         for (plane1, plane2) in collidingAircraft:
+
+            if plane1 not in handledPlanes:
+                handledPlanes.append(plane1)
+            if plane2 not in handledPlanes:
+                handledPlanes.append(plane2)
+
             state1 = self.getState(aircraft[plane1], aircraft[plane2])
             state2 = self.getState(aircraft[plane2], aircraft[plane1])
 
@@ -166,7 +176,7 @@ class Main:
                 history = self.planeHistory[plane1]
                 p1_action = self.sarsa.update(history[0], history[1], state1, rewards[plane1])
                 self.planeHistory[plane1] = (state1, p1_action)
-                if (d1 > 100):
+                if (d1 > MIN_AIRPORT_DISTANCE and state1.d > REROUTE_DISTANCE):
                     self.queueAction(aircraft[plane1], Action(p1_action))
 
             if plane2 not in self.planeHistory:
@@ -175,8 +185,33 @@ class Main:
                 history = self.planeHistory[plane2]
                 p2_action = self.sarsa.update(history[0], history[1], state2, rewards[plane2])
                 self.planeHistory[plane2] = (state2, p2_action)
-                if (d2 > 100):
+                if (d2 > MIN_AIRPORT_DISTANCE and state2.d > REROUTE_DISTANCE):
                     self.queueAction(aircraft[plane2], Action(p2_action))
+        
+
+        # For all the planes that are cruising on their own, make sure they have entried into the table
+        for planeName in aircraft.keys():
+            if planeName not in handledPlanes:
+                plane = aircraft[planeName]
+                state = State(0, 0, 0, plane.getDistanceToGo())
+                if plane not in self.planeHistory:
+                    self.planeHistory[planeName] = (state, Action.N.value)
+                history = self.planeHistory[planeName]
+                self.sarsa.updateQ(history[0], history[1], rewards[planeName], state, Action.N.value)
+
+
+        # Take into account the planes that have reached their destination and propagate their reward
+        activePlanes = np.array(list(aircraft.keys()))
+        rewardKeys = np.array(list(rewards.keys()))
+        destinationPlanes = np.setdiff1d(rewardKeys, activePlanes)
+        if len(destinationPlanes) > 0:
+            for plane in destinationPlanes:
+                # Create a new terminal state
+                state = State(0, 0, 0, 0)
+                history = self.planeHistory[plane]
+                self.sarsa.updateQ(history[0], history[1], rewards[plane], state, Action.N.value)
+
+
 
     def getState(self, plane1, plane2):
         '''
@@ -244,7 +279,7 @@ class Main:
         theta = int(np.around(theta_accurate/10))
         d = int(d)
 
-        return State(d, rho, theta)
+        return State(d, rho, theta, plane1.getDistanceToGo())
 
     def queueAction(self, plane, action):
         '''
