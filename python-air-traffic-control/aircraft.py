@@ -68,6 +68,10 @@ class Aircraft:
     def getLocation(self):
         return np.array(self.location)
 
+    #Return the distance to the destination
+    def getDistanceToGo(self):
+        return np.linalg.norm(self.destination.getLocation() - self.getLocation())
+
     #Return current heading
     def getHeading(self):
         ret = 0
