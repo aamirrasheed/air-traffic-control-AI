@@ -122,6 +122,7 @@ class AIGame:
             self.screen.set_clip(pygame.Rect(0,0,AIGame.FSPANE_LEFT,AIGame.SCREEN_H))
             #Handle any UI stuff
             self.__handleUserInteraction()
+            '''
             if (self.demomode and self.aircraft):
                 if (self.ms_elapsed > nextDemoEventTime):
                     nextDemoEventTime += random.randint(10000,20000)
@@ -134,6 +135,7 @@ class AIGame:
                     if (randAC.getSpeed() < 110 or randAC.getSpeed() > 990):
                         ds *= -1
                     randAC.setSpeed(randAC.getSpeed() + ds)
+            '''
 
 
             #Draw background
@@ -164,17 +166,18 @@ class AIGame:
             pygame.draw.line(self.screen, (255, 255, 255), (AIGame.AERIALPANE_W + 1, 0), (AIGame.AERIALPANE_W + 1, AIGame.SCREEN_H), 3)
             pygame.draw.line(self.screen, (255, 255, 255), (AIGame.FSPANE_LEFT, AIGame.FSPANE_TOP - 2), (AIGame.SCREEN_W, AIGame.FSPANE_TOP - 2), 3)
 
-            if self.demomode == False:
-                #if self.score is negative cap it at 0.
-                if self.score <= 0:
-                    self.score = 0
-                #Draw score/time indicators
-                sf_score = self.font.render("Score: " + str(self.score), True, AIGame.COLOR_SCORETIME)
-                sf_time = self.font.render("Time: " + str( math.floor((conf.get()['game']['gametime'] - self.ms_elapsed) / 1000) ), True, AIGame.COLOR_SCORETIME)
-                self.screen.fill((0,0,0),sf_score.get_rect().move(AIGame.FSPANE_LEFT + 30, 10))
-                self.screen.fill((0,0,0),sf_time.get_rect().move(AIGame.FSPANE_LEFT + 30, 40))
-                self.screen.blit(sf_score, (AIGame.FSPANE_LEFT + 30, 10))
-                self.screen.blit(sf_time, (AIGame.FSPANE_LEFT + 30, 40))
+            #if self.demomode == False:
+            #if self.score is negative cap it at 0.
+            if self.score <= 0:
+                self.score = 0
+            #Draw score/time indicators
+            sf_score = self.font.render("Score: " + str(self.score), True, AIGame.COLOR_SCORETIME)
+            #sf_time = self.font.render("Time: " + str( math.floor((conf.get()['game']['gametime'] - self.ms_elapsed) / 1000) ), True, AIGame.COLOR_SCORETIME)
+            self.screen.fill((0,0,0),sf_score.get_rect().move(AIGame.FSPANE_LEFT + 30, 10))
+            #self.screen.fill((0,0,0),sf_time.get_rect().move(AIGame.FSPANE_LEFT + 30, 40))
+            self.screen.blit(sf_score, (AIGame.FSPANE_LEFT + 30, 10))
+            #self.screen.blit(sf_time, (AIGame.FSPANE_LEFT + 30, 40))
+            '''
             else:
                 #if (self.ms_elapsed / 1000) % 2 == 0:
                     sf_demo = pygame.font.Font(None, 50).render("DEMO MODE!", True, (255, 100, 100))
@@ -182,6 +185,7 @@ class AIGame:
 
                     mvmouse_demo = pygame.font.Font(None, 50).render("Move mouse!", True, (255, 100, 100))
                     self.screen.blit(mvmouse_demo, (AIGame.FSPANE_LEFT + 15, 50))
+            '''
 
             #Recalc time and check for game end
             self.ms_elapsed = self.ms_elapsed + timepassed

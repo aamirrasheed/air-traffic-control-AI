@@ -35,7 +35,7 @@
 		"n_spawnpoints":50,
 		"n_destinations":1,
 		"n_obstacles":0,
-		"framerate":80,
+		"framerate":60,
 		"fullscreen":false,
 		"n_highscores":30
 	},

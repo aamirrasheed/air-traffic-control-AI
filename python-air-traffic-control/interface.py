@@ -69,6 +69,7 @@ class Main:
         exit = 0
         score = 0
         episodes = 0
+        scores = []
 
         while (exit == 0):
             if (state == STATE_MENU):
@@ -102,14 +103,18 @@ class Main:
 
                 self.infologger.add_value(self.id,'score',score)
                 print("Episode {} over.".format(episodes))
-                episodes += 1
+                scores.append(score)
 
                 # Save the Q table every 100 episodes to save progress
                 if episodes != 0 and episodes % 10 == 0:
-                    self.sarsa.saveQ("q_tables/initialTestRun_{}.pickle".format(episodes))
+                    self.sarsa.saveQ("q_tables/model_{}.pickle".format(episodes))
+                    scoresArray = np.array(scores)
+                    np.save('score.npy', scoresArray)
 
                 # Clear the plane history at the restart of every game
                 self.planeHistory.clear()
+                score = 0
+                episodes += 1
 
                 if (gameEndCode == conf.get()['codes']['kill']):
                     state = STATE_KILL
