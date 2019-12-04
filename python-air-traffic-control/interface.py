@@ -102,12 +102,13 @@ class Main:
                     self.trainSarsa(aircraft, collidingAircraft, rewards)
 
                 self.infologger.add_value(self.id,'score',score)
-                print("Episode {} over.".format(episodes))
                 scores.append(score)
+                s = np.array(scores)
+                print("Episode {} over. \t Avg Score:{}".format(episodes, np.mean(s)))
 
                 # Save the Q table every 100 episodes to save progress
-                if episodes != 0 and episodes % 10 == 0:
-                    self.sarsa.saveQ("q_tables/model_{}.pickle".format(episodes))
+                if episodes != 0 and episodes % 25 == 0:
+                    self.sarsa.saveQ("q_tables/model.pickle")
                     scoresArray = np.array(scores)
                     np.save('score.npy', scoresArray)
 

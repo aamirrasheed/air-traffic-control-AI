@@ -200,6 +200,8 @@ class AIGame:
         aircraft = self.getPlaneDict()
         collidingAircraft, collisionSet = self.getCollidingAircraft()
         rewards = self.getRewards(destination_airplanes, collisionSet)
+        if len(self.aircraftspawns) == 0:
+            self.gameEndCode = conf.get()['codes']['ac_collide']
 
         return (aircraft, rewards, collidingAircraft, self.gameEndCode, self.score)
 
@@ -249,7 +251,7 @@ class AIGame:
             self.cnt_fspane.repaint()
 
         #4: Spawn new aircraft due for spawning (or if in demo, regenerate list if none left)
-        if(len(self.aircraftspawntimes) != 0):
+        if(len(self.aircraftspawntimes) != 0 and len(self.aircraftspawns) != 0):
             if self.ms_elapsed >= self.aircraftspawntimes[0]:  # If game time has exceeded normal aircraft spawn time
                 sp = self.aircraftspawns[0]
                 while (self.__isSpawnPointTooCloseToAircraft(sp)):  # While we get close spawn points we strip those points
@@ -264,10 +266,6 @@ class AIGame:
                     self.cnt_fspane.addNewFlightStrip(ac)
                 self.aircraftspawns.remove(sp)      # Removes the previous spawn point
                 self.aircraftspawntimes.remove(self.aircraftspawntimes[0])
-        elif self.demomode:
-            self.ms_eleapsed = 0
-            self.__generateAircraftSpawnEvents()
-            print("reset")
 
         # for calculation of 'reaching destination' reward
         return completed_aircraft
