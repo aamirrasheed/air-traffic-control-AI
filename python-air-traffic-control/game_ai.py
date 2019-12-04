@@ -38,7 +38,7 @@ class AIGame:
 
     COLOR_SCORETIME = (20, 193, 236)    #Score/time counter colour
 
-    POTENTIAL_COLLISION_THRESHOLD = 200
+    POTENTIAL_COLLISION_THRESHOLD = 150
 
     def __init__(self, screen, demomode):
         #Screen vars
@@ -550,14 +550,10 @@ class AIGame:
         for plane in self.aircraft:
             # Get the id of the plane to serve as the key in the rewards dictionary
             id = plane.getIdent()
-            # print("plane: ",plane)
-            dest = plane.destination.getLocation()
-            # print("dest: ",dest)
 
             reward = 0
 
             loc = np.array(plane.getLocation())
-            closest_plane = None
             closest_distance = np.inf
             if id in collision_set:
                 # get closest plane
@@ -569,21 +565,19 @@ class AIGame:
                     dist = np.linalg.norm(loc2-loc)
                     if dist < closest_distance:
                         closest_distance = dist
-                        closest_plane = plane2
 
                 # get distance reward. 0 at max radius, 500 at 0 distance.
                 radius = AIGame.POTENTIAL_COLLISION_THRESHOLD
                 dist_rew = -(radius**2 - closest_distance**2)/(radius**2/500)
-                # print("dist_rew: ", dist_rew)
-                dest_rew = -0.1*(np.linalg.norm(dest-loc)+1)
-                # print("dest_rew: ", dest_rew)
-                reward += dist_rew + dist_rew
-                # print(reward)
+                reward += dist_rew
+
+            # print("dist_rew: ", dist_rew)
+            reward += 100 - plane.getDistanceToGo()
 
             rewards[id] = reward
 
         # Add a high reward for all the plane that have reached their destination
         for id in destination_airplanes:
-            rewards[id] = 100
+            rewards[id] = 1000
 
         return rewards
