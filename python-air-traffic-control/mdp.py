@@ -42,6 +42,8 @@ class Sarsa:
         return action
 
     def updateQ(self, prevState, prevAction, reward, state, action):
+        if state not in self.Q:
+            self.Q[state] = [0] * Sarsa.na
         Q_val = self.Q[prevState][prevAction]
         self.Q[prevState][prevAction] += Sarsa.alpha*(reward + Sarsa.lamda*self.Q[state][action] - Q_val)
 
@@ -69,8 +71,9 @@ class Action(Enum):
 
 # Create the state object 
 class State:
-    def __init__(self, d=0, rho=0, theta=0):
+    def __init__(self, d=0, rho=0, theta=0, distanceToGo=0):
         self.d = d
         self.rho = rho
         self.theta = theta
+        self.distanceToGo = distanceToGo
 
