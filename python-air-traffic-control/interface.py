@@ -107,11 +107,15 @@ class Main:
                 s = np.array(scores)
                 print("Episode {} over. \t Avg Score:{}".format(episodes, np.mean(s)))
 
-                # Save the Q table every 25 episodes to save progress
-                if episodes != 0 and episodes % 25 == 0:
-                    self.sarsa.saveQ("q_tables/model.pickle")
+                # Save the Q table every 10 episodes to save progress
+                if episodes != 0 and episodes % 10 == 0:
+                    self.sarsa.saveQ("q_tables/"+str(episodes)+"model.pickle")
                     scoresArray = np.array(scores)
-                    np.save('score.npy', scoresArray)
+                    np.save("episode_"+str(episodes)+'score.npy', scoresArray)
+
+                # Update explore probability every 10 episodes
+                if episodes != 0 and episodes % 2 == 0:
+                    self.sarsa.setExplore(self.sarsa.explore*0.9)
 
                 # Clear the plane history at the restart of every game
                 self.planeHistory.clear()
@@ -349,7 +353,7 @@ def getArgs(parser):
     parser.add_argument("-q", "--q_table", type=str, help="Filepath of a precalculated q table.")
     parser.add_argument("-lr", "--learning_rate", type=float, help="Learning rate for SARSA.")
     parser.add_argument("-e", "--exploration_probability", type=float, help="Exploration probability for SARSA.")
-    parser.add_argument("-l", "--lamda", type=float, help="Lambda parameter for SARSA.")
+    parser.add_argument("-l", "--lamda", type=float, help="Discount factor for SARSA.")
     return parser.parse_args()
 
 

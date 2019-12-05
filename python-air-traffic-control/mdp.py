@@ -20,17 +20,22 @@ class Sarsa:
             self.Q = {}
         else:
             self.loadQ(qTableFile)
-        Sarsa.alpha = alpha
-        Sarsa.lamda = lamda
-        Sarsa.explore = explore
-        print("Initializing SARSA with these parameters: learning_rate: {}, lambda: {}, exploration_probability: {}.".format(Sarsa.alpha,Sarsa.lamda,Sarsa.explore))
+        self.alpha = alpha
+        self.lamda = lamda
+        self.explore = explore
+        print("Initializing SARSA with these parameters: learning_rate: {}, lambda: {}, exploration_probability: {}.".format(self.alpha,self.lamda,self.explore))
+
+    def setExplore(self,explore = explore):
+        self.explore = explore
+        print("Changing SARSA parameters to: learning_rate: {}, lambda: {}, exploration_probability: {}.".format(self.alpha,self.lamda,self.explore))
+
 
     def update(self, prevState, prevAction, state, reward):
         # If the state has never been seen before, initialize the state with 0 values for all actions
         if prevState not in self.Q:
-            self.Q[prevState] = [0] * Sarsa.na
+            self.Q[prevState] = [0] * self.na
         if state not in self.Q:
-            self.Q[state] = [0] * Sarsa.na
+            self.Q[state] = [0] * self.na
 
         action = self.chooseAction(state)
         self.updateQ(prevState, prevAction, reward, state, action)
@@ -39,7 +44,7 @@ class Sarsa:
     def chooseAction(self, state):
         # Setting a random threshold
         rand = random.random()
-        if rand < Sarsa.explore:
+        if rand < self.explore:
             action = random.randint(0,self.na-1)
         else:
             action = np.argmax(self.Q[state])
@@ -47,9 +52,9 @@ class Sarsa:
 
     def updateQ(self, prevState, prevAction, reward, state, action):
         if state not in self.Q:
-            self.Q[state] = [0] * Sarsa.na
+            self.Q[state] = [0] * self.na
         Q_val = self.Q[prevState][prevAction]
-        self.Q[prevState][prevAction] += Sarsa.alpha*(reward + Sarsa.lamda*self.Q[state][action] - Q_val)
+        self.Q[prevState][prevAction] += self.alpha*(reward + self.lamda*self.Q[state][action] - Q_val)
 
     def saveQ(self, filename="q_tables/default.pickle"):
         # Saves the Q table in a file we can access later
