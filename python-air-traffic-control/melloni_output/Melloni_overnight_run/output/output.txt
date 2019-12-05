@@ -1,0 +1,182 @@
+(env) C:\Users\johnm\Desktop\Project\air-traffic-control-AI\python-air-traffic-control>python interface.py -p 25 -e 0.5
+pygame 1.9.6
+Hello from the pygame community. https://www.pygame.org/contribute.html
+Initializing SARSA with these parameters: learning_rate: 0.5, lambda: 0.9, exploration_probability: 0.5.
+Episode 0 over.          Avg Score:0.0
+Episode 1 over.          Avg Score:50.0
+Episode 2 over.          Avg Score:33.333333333333336
+Episode 3 over.          Avg Score:25.0
+Episode 4 over.          Avg Score:20.0
+Episode 5 over.          Avg Score:66.66666666666667
+Episode 6 over.          Avg Score:57.142857142857146
+Episode 7 over.          Avg Score:50.0
+Episode 8 over.          Avg Score:44.44444444444444
+Episode 9 over.          Avg Score:130.0
+Episode 10 over.         Avg Score:127.27272727272727
+Changing SARSA parameters to: learning_rate: 0.5, lambda: 0.9, exploration_probability: 0.45.
+Episode 11 over.         Avg Score:116.66666666666667
+Episode 12 over.         Avg Score:107.6923076923077
+Episode 13 over.         Avg Score:100.0
+Episode 14 over.         Avg Score:100.0
+Episode 15 over.         Avg Score:162.5
+Episode 16 over.         Avg Score:194.11764705882354
+Episode 17 over.         Avg Score:200.0
+Episode 18 over.         Avg Score:226.31578947368422
+Episode 19 over.         Avg Score:215.0
+Episode 20 over.         Avg Score:276.1904761904762
+Changing SARSA parameters to: learning_rate: 0.5, lambda: 0.9, exploration_probability: 0.405.
+Episode 21 over.         Avg Score:268.1818181818182
+Episode 22 over.         Avg Score:278.2608695652174
+Episode 23 over.         Avg Score:266.6666666666667
+Episode 24 over.         Avg Score:284.0
+Episode 25 over.         Avg Score:273.0769230769231
+Q Table saved at q_tables/25model.pickle!
+Episode 26 over.         Avg Score:262.962962962963
+Episode 27 over.         Avg Score:253.57142857142858
+Episode 28 over.         Avg Score:248.27586206896552
+Episode 29 over.         Avg Score:256.6666666666667
+Episode 30 over.         Avg Score:287.0967741935484
+Changing SARSA parameters to: learning_rate: 0.5, lambda: 0.9, exploration_probability: 0.36450000000000005.
+Episode 31 over.         Avg Score:293.75
+Episode 32 over.         Avg Score:284.8484848484849
+Episode 33 over.         Avg Score:279.4117647058824
+Episode 34 over.         Avg Score:288.57142857142856
+Episode 35 over.         Avg Score:300.0
+Episode 36 over.         Avg Score:291.8918918918919
+Episode 37 over.         Avg Score:284.2105263157895
+Episode 38 over.         Avg Score:315.38461538461536
+Episode 39 over.         Avg Score:307.5
+Episode 40 over.         Avg Score:300.0
+Changing SARSA parameters to: learning_rate: 0.5, lambda: 0.9, exploration_probability: 0.32805000000000006.
+Episode 41 over.         Avg Score:292.85714285714283
+Episode 42 over.         Avg Score:286.04651162790697
+Episode 43 over.         Avg Score:279.54545454545456
+Episode 44 over.         Avg Score:362.22222222222223
+Episode 45 over.         Avg Score:354.3478260869565
+Episode 46 over.         Avg Score:346.8085106382979
+Episode 47 over.         Avg Score:347.9166666666667
+Episode 48 over.         Avg Score:340.81632653061223
+Episode 49 over.         Avg Score:346.0
+Episode 50 over.         Avg Score:339.2156862745098
+Q Table saved at q_tables/50model.pickle!
+Changing SARSA parameters to: learning_rate: 0.5, lambda: 0.9, exploration_probability: 0.2952450000000001.
+Episode 51 over.         Avg Score:338.46153846153845
+Episode 52 over.         Avg Score:332.07547169811323
+Episode 53 over.         Avg Score:325.9259259259259
+Episode 54 over.         Avg Score:340.0
+Episode 55 over.         Avg Score:333.92857142857144
+Episode 56 over.         Avg Score:329.82456140350877
+Episode 57 over.         Avg Score:346.55172413793105
+Episode 58 over.         Avg Score:340.6779661016949
+Episode 59 over.         Avg Score:336.6666666666667
+Episode 60 over.         Avg Score:331.1475409836066
+Changing SARSA parameters to: learning_rate: 0.5, lambda: 0.9, exploration_probability: 0.2657205000000001.
+Episode 61 over.         Avg Score:325.80645161290323
+Episode 62 over.         Avg Score:320.63492063492066
+Episode 63 over.         Avg Score:315.625
+Episode 64 over.         Avg Score:327.6923076923077
+Episode 65 over.         Avg Score:322.72727272727275
+Episode 66 over.         Avg Score:317.910447761194
+Episode 67 over.         Avg Score:320.5882352941176
+Episode 68 over.         Avg Score:315.94202898550725
+Episode 69 over.         Avg Score:314.2857142857143
+Episode 70 over.         Avg Score:314.0845070422535
+Changing SARSA parameters to: learning_rate: 0.5, lambda: 0.9, exploration_probability: 0.23914845000000007.
+Episode 71 over.         Avg Score:309.72222222222223
+Episode 72 over.         Avg Score:327.3972602739726
+Episode 73 over.         Avg Score:322.97297297297297
+Episode 74 over.         Avg Score:318.6666666666667
+Episode 75 over.         Avg Score:314.4736842105263
+Q Table saved at q_tables/75model.pickle!
+Episode 76 over.         Avg Score:310.38961038961037
+Episode 77 over.         Avg Score:310.2564102564103
+Episode 78 over.         Avg Score:306.32911392405066
+Episode 79 over.         Avg Score:302.5
+Episode 80 over.         Avg Score:298.7654320987654
+Changing SARSA parameters to: learning_rate: 0.5, lambda: 0.9, exploration_probability: 0.21523360500000008.
+Episode 81 over.         Avg Score:295.1219512195122
+Episode 82 over.         Avg Score:298.7951807228916
+Episode 83 over.         Avg Score:317.85714285714283
+Episode 84 over.         Avg Score:314.11764705882354
+Episode 85 over.         Avg Score:310.4651162790698
+Episode 86 over.         Avg Score:308.04597701149424
+Episode 87 over.         Avg Score:326.1363636363636
+Episode 88 over.         Avg Score:322.4719101123595
+Episode 89 over.         Avg Score:318.8888888888889
+Episode 90 over.         Avg Score:323.0769230769231
+Changing SARSA parameters to: learning_rate: 0.5, lambda: 0.9, exploration_probability: 0.19371024450000007.
+Episode 91 over.         Avg Score:327.17391304347825
+Episode 92 over.         Avg Score:325.80645161290323
+Episode 93 over.         Avg Score:322.3404255319149
+Episode 94 over.         Avg Score:321.05263157894734
+Episode 95 over.         Avg Score:317.7083333333333
+Episode 96 over.         Avg Score:319.58762886597935
+Episode 97 over.         Avg Score:316.3265306122449
+Episode 98 over.         Avg Score:313.1313131313131
+Episode 99 over.         Avg Score:310.0
+Episode 100 over.        Avg Score:306.9306930693069
+Q Table saved at q_tables/100model.pickle!
+Changing SARSA parameters to: learning_rate: 0.5, lambda: 0.9, exploration_probability: 0.17433922005000008.
+Episode 101 over.        Avg Score:306.8627450980392
+Episode 102 over.        Avg Score:308.7378640776699
+Episode 103 over.        Avg Score:316.34615384615387
+Episode 104 over.        Avg Score:313.3333333333333
+Episode 105 over.        Avg Score:315.0943396226415
+Episode 106 over.        Avg Score:312.14953271028037
+Episode 107 over.        Avg Score:309.25925925925924
+Episode 108 over.        Avg Score:306.42201834862385
+Episode 109 over.        Avg Score:303.6363636363636
+Episode 110 over.        Avg Score:300.9009009009009
+Changing SARSA parameters to: learning_rate: 0.5, lambda: 0.9, exploration_probability: 0.15690529804500009.
+Episode 111 over.        Avg Score:298.2142857142857
+Episode 112 over.        Avg Score:319.46902654867256
+Episode 113 over.        Avg Score:316.6666666666667
+Episode 114 over.        Avg Score:313.9130434782609
+Episode 115 over.        Avg Score:311.2068965517241
+Episode 116 over.        Avg Score:308.54700854700855
+Episode 117 over.        Avg Score:305.93220338983053
+Episode 118 over.        Avg Score:303.3613445378151
+Episode 119 over.        Avg Score:300.8333333333333
+Episode 120 over.        Avg Score:298.3471074380165
+Changing SARSA parameters to: learning_rate: 0.5, lambda: 0.9, exploration_probability: 0.14121476824050008.
+Episode 121 over.        Avg Score:295.9016393442623
+Episode 122 over.        Avg Score:296.7479674796748
+Episode 123 over.        Avg Score:294.35483870967744
+Episode 124 over.        Avg Score:292.0
+Episode 125 over.        Avg Score:292.85714285714283
+Q Table saved at q_tables/125model.pickle!
+Episode 126 over.        Avg Score:290.5511811023622
+Episode 127 over.        Avg Score:288.28125
+Episode 128 over.        Avg Score:296.1240310077519
+Episode 129 over.        Avg Score:309.2307692307692
+Episode 130 over.        Avg Score:306.8702290076336
+Changing SARSA parameters to: learning_rate: 0.5, lambda: 0.9, exploration_probability: 0.12709329141645007.
+Episode 131 over.        Avg Score:304.54545454545456
+Episode 132 over.        Avg Score:302.25563909774434
+Episode 133 over.        Avg Score:300.0
+Episode 134 over.        Avg Score:298.51851851851853
+Episode 135 over.        Avg Score:296.3235294117647
+Episode 136 over.        Avg Score:294.16058394160586
+Episode 137 over.        Avg Score:294.2028985507246
+Episode 138 over.        Avg Score:292.0863309352518
+Episode 139 over.        Avg Score:290.0
+Episode 140 over.        Avg Score:297.16312056737587
+Changing SARSA parameters to: learning_rate: 0.5, lambda: 0.9, exploration_probability: 0.11438396227480506.
+Episode 141 over.        Avg Score:301.40845070422534
+Episode 142 over.        Avg Score:299.3006993006993
+Episode 143 over.        Avg Score:297.22222222222223
+Episode 144 over.        Avg Score:295.17241379310343
+Episode 145 over.        Avg Score:296.5753424657534
+Episode 146 over.        Avg Score:294.5578231292517
+Episode 147 over.        Avg Score:294.5945945945946
+Episode 148 over.        Avg Score:295.9731543624161
+Episode 149 over.        Avg Score:294.6666666666667
+Episode 150 over.        Avg Score:296.02649006622516
+Traceback (most recent call last):
+  File "interface.py", line 404, in <module>
+    game_main.run()
+  File "interface.py", line 112, in run
+    self.sarsa.saveQ("q_tables/"+str(episodes)+"model.pickle")
+  File "C:\Users\johnm\Desktop\Project\air-traffic-control-AI\python-air-traffic-control\mdp.py", line 62, in saveQ
+    pickle.dump(self.Q, handle, protocol=pickle.HIGHEST_PROTOCOL)
+MemoryError
