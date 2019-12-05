@@ -32,7 +32,7 @@ class Main:
 
     BG_COLOR = (0, 0, 0)
 
-    def __init__(self, qTableFile=None, alpha = 0.5, lamda = 0.2, explore = 0.1 ):
+    def __init__(self, qTableFile=None, alpha = 0.5, lamda = 0.9, explore = 0.1 ):
 
         #Init the modules we need
         display.init()
@@ -393,7 +393,7 @@ if __name__ == '__main__':
     if args.learning_rate is None:
         args.learning_rate = 0.5
     if args.lamda is None:
-        args.lamda = 0.2
+        args.lamda = 0.9
     if args.exploration_probability is None:
         args.exploration_probability = 0.1 
 

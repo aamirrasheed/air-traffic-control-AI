@@ -12,7 +12,7 @@ class Sarsa:
     ns = d * rho * theta
     explore = 0.1
     alpha = 0.5
-    lamda = 0.2
+    lamda = 0.9
 
     def __init__(self, qTableFile=None, alpha=alpha, lamda = lamda, explore=explore):
         # Initialize the q table as empty or with a file
