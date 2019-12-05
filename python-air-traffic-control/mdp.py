@@ -14,12 +14,16 @@ class Sarsa:
     alpha = 0.5
     lamda = 0.2
 
-    def __init__(self, qTableFile=None):
+    def __init__(self, qTableFile=None, alpha=alpha, lamda = lamda, explore=explore):
         # Initialize the q table as empty or with a file
         if qTableFile is None:
             self.Q = {}
         else:
             self.loadQ(qTableFile)
+        Sarsa.alpha = alpha
+        Sarsa.lamda = lamda
+        Sarsa.explore = explore
+        print("Initializing SARSA with these parameters: learning_rate: {}, lambda: {}, exploration_probability: {}.".format(Sarsa.alpha,Sarsa.lamda,Sarsa.explore))
 
     def update(self, prevState, prevAction, state, reward):
         # If the state has never been seen before, initialize the state with 0 values for all actions

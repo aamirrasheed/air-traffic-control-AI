@@ -32,7 +32,8 @@ class Main:
 
     BG_COLOR = (0, 0, 0)
 
-    def __init__(self, qTableFile=None):
+    def __init__(self, qTableFile=None, alpha = 0.5, lamda = 0.2, explore = 0.1 ):
+
         #Init the modules we need
         display.init()
         pygame.mixer.init()
@@ -57,9 +58,9 @@ class Main:
 
         # Initializing a default Sarsa object or with a pre-initialized Q-table
         if qTableFile is None:
-            self.sarsa = Sarsa()
+            self.sarsa = Sarsa(alpha=alpha,lamda=lamda,explore=explore)
         else:
-            self.sarsa = Sarsa(qTableFile)
+            self.sarsa = Sarsa(qTableFile,alpha=alpha,lamda=lamda,explore=explore)
         # Keep track of the running planes and their previous state and action
         # Key is the plane ID and the value is the tuple (state, action)
         self.planeHistory = {}
@@ -106,7 +107,7 @@ class Main:
                 s = np.array(scores)
                 print("Episode {} over. \t Avg Score:{}".format(episodes, np.mean(s)))
 
-                # Save the Q table every 100 episodes to save progress
+                # Save the Q table every 25 episodes to save progress
                 if episodes != 0 and episodes % 25 == 0:
                     self.sarsa.saveQ("q_tables/model.pickle")
                     scoresArray = np.array(scores)
@@ -346,6 +347,9 @@ def getArgs(parser):
     parser.add_argument("-f", "--fullscreen", action="store_true", help="Toggle fullscreen mode")
     parser.add_argument("-fr", "--framerate", type=int, help="Framerate of the game")
     parser.add_argument("-q", "--q_table", type=str, help="Filepath of a precalculated q table.")
+    parser.add_argument("-lr", "--learning_rate", type=float, help="Learning rate for SARSA.")
+    parser.add_argument("-e", "--exploration_probability", type=float, help="Exploration probability for SARSA.")
+    parser.add_argument("-l", "--lamda", type=float, help="Lambda parameter for SARSA.")
     return parser.parse_args()
 
 
@@ -381,8 +385,16 @@ if __name__ == '__main__':
     # Make the necessary changes to the game configuration
     override_config(args)
 
+
+    if args.learning_rate is None:
+        args.learning_rate = 0.5
+    if args.lamda is None:
+        args.lamda = 0.2
+    if args.exploration_probability is None:
+        args.exploration_probability = 0.1 
+
     if args.q_table is None:
-        game_main = Main()
+        game_main = Main(alpha = args.learning_rate, lamda = args.lamda, explore=args.exploration_probability)
     else:
-        game_main = Main(args.q_table)
+        game_main = Main(args.q_table,alpha = args.learning_rate, lamda = args.lamda, explore=args.exploration_probability)
     game_main.run()
