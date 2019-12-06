@@ -107,11 +107,17 @@ class Main:
                 s = np.array(scores)
                 print("Episode {} over. \t Avg Score:{}".format(episodes, np.mean(s)))
 
+                # save score and delete two episodes ago
+                scoresArray = np.array(scores)
+                np.save("episode_"+str(episodes)+'score.npy', scoresArray)
+                if os.path.exists("episode_"+str(episodes-2)+"score.npy")
+                    os.remove("episode_"+str(episodes-2)+"score.npy")
+
                 # Save the Q table every 25 episodes to save progress
-                if episodes != 0 and episodes % 25 == 0:
-                    self.sarsa.saveQ("q_tables/"+str(episodes)+"model.pickle")
-                    scoresArray = np.array(scores)
-                    np.save("episode_"+str(episodes)+'score.npy', scoresArray)
+                #if episodes != 0 and episodes % 25 == 0:
+                    #self.sarsa.saveQ("q_tables/"+str(episodes)+"model.pickle")
+                    #scoresArray = np.array(scores)
+                    #np.save("episode_"+str(episodes)+'score.npy', scoresArray)
 
                 # Update explore probability every 10 episodes
                 if episodes != 0 and episodes % 10 == 0:
@@ -188,7 +194,7 @@ class Main:
                 p1_action = self.sarsa.update(history[0], history[1], state1, rewards[plane1])
                 self.planeHistory[plane1] = (state1, p1_action)
                 if (d1 > MIN_AIRPORT_DISTANCE and state1.d > REROUTE_DISTANCE):
-                    self.queueAction(aircraft[plane1], Action(p1_action))
+                    #self.queueAction(aircraft[plane1], Action(p1_action))
 
             if plane2 not in self.planeHistory:
                 self.planeHistory[plane2] = (state2, Action.N.value)
@@ -197,7 +203,7 @@ class Main:
                 p2_action = self.sarsa.update(history[0], history[1], state2, rewards[plane2])
                 self.planeHistory[plane2] = (state2, p2_action)
                 if (d2 > MIN_AIRPORT_DISTANCE and state2.d > REROUTE_DISTANCE):
-                    self.queueAction(aircraft[plane2], Action(p2_action))
+                    #self.queueAction(aircraft[plane2], Action(p2_action))
         
 
         # For all the planes that are cruising on their own, make sure they have entried into the table
