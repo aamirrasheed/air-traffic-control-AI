@@ -110,7 +110,7 @@ class Main:
                 # save score and delete two episodes ago
                 scoresArray = np.array(scores)
                 np.save("episode_"+str(episodes)+'score.npy', scoresArray)
-                if os.path.exists("episode_"+str(episodes-2)+"score.npy")
+                if os.path.exists("episode_"+str(episodes-2)+"score.npy"):
                     os.remove("episode_"+str(episodes-2)+"score.npy")
 
                 # Save the Q table every 25 episodes to save progress
@@ -194,6 +194,7 @@ class Main:
                 p1_action = self.sarsa.update(history[0], history[1], state1, rewards[plane1])
                 self.planeHistory[plane1] = (state1, p1_action)
                 if (d1 > MIN_AIRPORT_DISTANCE and state1.d > REROUTE_DISTANCE):
+                    pass
                     #self.queueAction(aircraft[plane1], Action(p1_action))
 
             if plane2 not in self.planeHistory:
@@ -203,6 +204,7 @@ class Main:
                 p2_action = self.sarsa.update(history[0], history[1], state2, rewards[plane2])
                 self.planeHistory[plane2] = (state2, p2_action)
                 if (d2 > MIN_AIRPORT_DISTANCE and state2.d > REROUTE_DISTANCE):
+                    pass
                     #self.queueAction(aircraft[plane2], Action(p2_action))
         
 
