@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def displayScores():
-    loss = np.load("episode_125score.npy")
+    loss = np.load("episode_500score.npy")
     epochs = np.linspace(0, len(loss), num=len(loss))
     plt.figure(0)
     plt.title('Scores Over Time')

@@ -109,7 +109,7 @@ class Main:
 
                 # Save the Q table every 25 episodes to save progress
                 if episodes != 0 and episodes % 25 == 0:
-                    self.sarsa.saveQ("q_tables/"+str(episodes)+"model.pickle")
+                    #self.sarsa.saveQ("q_tables/"+str(episodes)+"model.pickle")
                     scoresArray = np.array(scores)
                     np.save("episode_"+str(episodes)+'score.npy', scoresArray)
 
@@ -187,8 +187,7 @@ class Main:
                 history = self.planeHistory[plane1]
                 p1_action = self.sarsa.update(history[0], history[1], state1, rewards[plane1])
                 self.planeHistory[plane1] = (state1, p1_action)
-                if (d1 > MIN_AIRPORT_DISTANCE and state1.d > REROUTE_DISTANCE):
-                    self.queueAction(aircraft[plane1], Action(p1_action))
+                self.queueAction(aircraft[plane1], Action(p1_action))
 
             if plane2 not in self.planeHistory:
                 self.planeHistory[plane2] = (state2, Action.N.value)
@@ -196,9 +195,8 @@ class Main:
                 history = self.planeHistory[plane2]
                 p2_action = self.sarsa.update(history[0], history[1], state2, rewards[plane2])
                 self.planeHistory[plane2] = (state2, p2_action)
-                if (d2 > MIN_AIRPORT_DISTANCE and state2.d > REROUTE_DISTANCE):
-                    self.queueAction(aircraft[plane2], Action(p2_action))
-        
+                self.queueAction(aircraft[plane2], Action(p2_action))
+
 
         # For all the planes that are cruising on their own, make sure they have entried into the table
         for planeName in aircraft.keys():
@@ -395,7 +393,7 @@ if __name__ == '__main__':
     if args.lamda is None:
         args.lamda = 0.9
     if args.exploration_probability is None:
-        args.exploration_probability = 0.1 
+        args.exploration_probability = 0.1
 
     if args.q_table is None:
         game_main = Main(alpha = args.learning_rate, lamda = args.lamda, explore=args.exploration_probability)

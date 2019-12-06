@@ -44,10 +44,13 @@ class Sarsa:
     def chooseAction(self, state):
         # Setting a random threshold
         rand = random.random()
+        '''
         if rand < self.explore:
             action = random.randint(0,self.na-1)
         else:
             action = np.argmax(self.Q[state])
+            '''
+        action = random.randint(0,self.na-1)
         return action
 
     def updateQ(self, prevState, prevAction, reward, state, action):
@@ -78,11 +81,10 @@ class Action(Enum):
     MR = 3  # Mid Right
     HR = 4  # Hard Right
 
-# Create the state object 
+# Create the state object
 class State:
     def __init__(self, d=0, rho=0, theta=0, distanceToGo=0):
         self.d = d
         self.rho = rho
         self.theta = theta
         self.distanceToGo = distanceToGo
-
